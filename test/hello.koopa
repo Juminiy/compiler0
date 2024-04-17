@@ -1,0 +1,1 @@
+CompUnit { FuncDef { int, main, Block { Stmt { return 0 } } } }
