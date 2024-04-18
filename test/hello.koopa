@@ -1,1 +1,6 @@
-CompUnit { FuncDef { int, main, Block { Stmt { return 0 } } } }
+
+fun @main(): i32 {
+%entry:
+	ret 0
+
+}

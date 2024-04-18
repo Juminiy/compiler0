@@ -1,0 +1,23 @@
+CompUnit { 
+    FuncDef { 
+        int, 
+        main, 
+        Block { 
+            Stmt { 
+                return 0 
+            }
+        } 
+    } 
+}
+
+CompUnitAST { 
+    FuncDefAST { 
+        FuncTypeAST { int }, 
+        main, 
+        BlockAST { 
+            StmtAST { 
+                0 
+            } 
+        } 
+    } 
+}

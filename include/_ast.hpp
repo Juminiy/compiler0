@@ -6,6 +6,8 @@
 #include <string>
 #include <iostream>
 
+#include "_alib.hpp"
+
 // 所有 AST 的基类
 class BaseAST {
  public:
@@ -24,7 +26,8 @@ class CompUnitAST : public BaseAST {
     {
         __os << "CompUnit { ";
         _a.func_def->log(__os);
-        __os << " }\n";
+        __os << " }"
+            << __LN__;
         return __os;
     }
   void log(std::ostream & __os) const override{
@@ -61,7 +64,9 @@ public:
     friend std::ostream& 
         operator << (std::ostream & __os, const FuncTypeAST &_a)
         {
-            __os << *_a.__type_;
+            __os << "FuncType { "
+                << *_a.__type_
+                << " }";
             return __os;
         }
     void log(std::ostream & __os) const override{
@@ -95,9 +100,9 @@ public:
     friend std::ostream& 
         operator << (std::ostream & __os, const StmtAST &_a)
         {
-            __os << "Stmt { " 
-                << *_a.__ret_ 
-                << " ";
+            __os << "Stmt { ";
+                // << *_a.__ret_ 
+                // << " ";
             _a.__number_->log(__os);
             __os << " }";
             return __os;

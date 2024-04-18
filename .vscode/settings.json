@@ -50,6 +50,7 @@
         "vector": "cpp",
         "algorithm": "cpp",
         "memory_resource": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "memory": "cpp"
     }
 }
