@@ -116,6 +116,8 @@
         __type__ const &
 #define __RREF__(__type__) \
         __type__ &&
+#define __UREF__(__tp__) \
+		__tp__ &&
 #define __PTR__(__type__) \
         __type__ *
 #define __CONST_PTR__(__type__) \

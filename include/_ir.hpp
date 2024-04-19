@@ -93,9 +93,13 @@ private:
 class FuncIR : public BaseIR
 {
 public:
-    static std::string 
-    _type_conv
-        (const std::string &_ast_type){
+    
+    /// @brief convert value type from ast to ir 
+    /// @param _ast_type 
+    /// @return 
+    static std::string _type_conv 
+    (const std::string &_ast_type)
+    {
         if(_ast_type == "int")
             return std::string("i32");
         
@@ -164,11 +168,15 @@ public:
 
     __FRIEND_OS_OPT__(pir, _ir)
     {
+        // ir global variables
         for(auto & _gvar : _ir.__global_vars_)
         {
             _gvar->log(__os);
         }
+
         __os << __LN__;
+
+        // ir functions
         for (auto & _func : _ir.__funcs_)
         {
             _func->log(__os);

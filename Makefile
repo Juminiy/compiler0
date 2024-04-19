@@ -96,7 +96,7 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 
 # outout Koopa
 outfile: $(BUILD_DIR)/$(TARGET_EXEC)
-	build/compiler -koopa test/hello.c -o test/hello.koopa
+	build/compiler -koopa test/hello.sysy -o test/hello.koopa
 
 .PHONY: clean
 

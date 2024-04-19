@@ -1,0 +1,21 @@
+int main() {
+
+  // 忽略我的存在
+
+  /* ignore0 */
+
+  /* ignore1
+
+  */
+
+  /* ignore2
+  /* 
+
+  */
+
+  // /* ignore error
+  // */
+  // */
+
+  return 0;
+}

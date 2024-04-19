@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <ios>
+#include <utility>
 
 #include "../include/_alib.hpp"
 #include "../include/_ast.hpp"
@@ -39,16 +40,19 @@ int main(int argc, const char *argv[]) {
     // 输出解析得到的 AST, 其实就是个字符串
     // gen AST
     // auto ast_ofs = std::ofstream(output);
-    // ast->log(ast_ofs); 
+    // ast->log(ast_ofs);
+    // ast->log(std::cout); 
     
-    __USE_NS__(Alan);
     // gen IR 
-    auto ir_ofs = std::ofstream(output);
+    // auto ir_ofs = std::ofstream(output);
     auto ir = 
         std::make_unique<Alan::ProgramIR>
         (*Alan::dynamic_uptr_cast<CompUnitAST, BaseAST>(ast));
     
-    ir->log(ir_ofs);
+    ir->log(std::cout);
+
+    // next to gen riscv asm
+
 
   return 0;
 }
