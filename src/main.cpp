@@ -1,5 +1,7 @@
 #include <cassert>
 #include <cstdio>
+#include <cstring>
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -11,6 +13,7 @@
 #include "../include/_ast.hpp"
 #include "../include/_ir.hpp"
 #include "../include/_ptrlib.hpp"
+#include "../include/_rv64i.hpp"
 
 // 声明 lexer 的输入, 以及 parser 函数
 // 为什么不引用 sysy.tab.hpp 呢? 因为首先里面没有 yyin 的定义
@@ -21,38 +24,78 @@ extern FILE *yyin;
 extern int yyparse(std::unique_ptr<BaseAST> &ast);
 
 int main(int argc, const char *argv[]) {
-  // 解析命令行参数. 测试脚本/评测平台要求你的编译器能接收如下参数:
-  // compiler 模式 输入文件 -o 输出文件
-  assert(argc == 5);
-  auto mode UNUSED = argv[1];
-  auto input = argv[2];
-  auto output = argv[4];
 
-  // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
-  yyin = fopen(input, "r");
-  assert(yyin);
+    // 解析命令行参数. 测试脚本/评测平台要求你的编译器能接收如下参数:
+    // compiler 模式 输入文件 -o 输出文件
+    assert(argc == 5);
+    auto mode = argv[1];
+    auto input = argv[2];
+    // omit argv[3] = -o
+    auto output = argv[4];
+    auto output_v2 = parseGetOutputByInput(input);
+    // 打开输入文件, 并且指定 lexer 在解析的时候读取这个文件
+    yyin = fopen(input, "r");
+    assert(yyin);
+    int _mode_num = parseMode(mode);
 
-  // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
-  std::unique_ptr<BaseAST> ast;
-  auto ret = yyparse(ast);
-  assert(!ret);
-
-    // 输出解析得到的 AST, 其实就是个字符串
     // gen AST
-    // auto ast_ofs = std::ofstream(output);
-    // ast->log(ast_ofs);
-    // ast->log(std::cout); 
-    
+    std::unique_ptr<BaseAST> _ast;
+    // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
+    auto ret = yyparse(_ast);
+    assert(!ret);
+    auto ast_ofs = std::ofstream(output);
+    if (_mode_num >= MODE_ALL)
+        ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
+    if (_mode_num == MODE_AST ||
+        _mode_num == MODE_ALL)
+        _ast->log(ast_ofs);
+
     // gen IR 
-    // auto ir_ofs = std::ofstream(output);
-    auto ir = 
+    auto _ir = 
         std::make_unique<Alan::ProgramIR>
-        (*Alan::dynamic_uptr_cast<CompUnitAST, BaseAST>(ast));
+        (*Alan::dynamic_uptr_cast<CompUnitAST, BaseAST>(_ast));
+    auto ir_ofs = std::ofstream(output);
+    if (_mode_num >= MODE_ALL)
+        ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
+    if (_mode_num == MODE_IR ||
+        _mode_num == MODE_ALL)
+        _ir->log(ir_ofs);
+
+    // gen ASM(RV64I)
+    auto _asm = 
+        std::make_unique<Alan::RV64::I::ProgramAsmGenerator>(*_ir);
+    auto asm_ofs = std::ofstream(output);
+    if (_mode_num >= MODE_ALL)
+        asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
+    if (_mode_num == MODE_ASM ||
+        _mode_num == MODE_ALL)
+        _asm->log(asm_ofs);
+
+    // // TODO: to support std::cout
+    // // TODO: because of unique_ptr, it realease, Fuck!!! elegant a not!!! !!!
+    // switch (parseMode(mode))
+    // {
+    // case MODE_AST:
+    //     _ast->log(ast_ofs);
+    //     break;
+    // case MODE_IR:
+    //     _ir->log(ir_ofs);
+    //     break;
+    // case MODE_ASM:
+    //     _asm->log(asm_ofs);
+    //     break;
+    // case MODE_ALL:
+    //     ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
+    //     _ast->log(ast_ofs);
+    //     ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
+    //     _ir->log(ir_ofs);
+    //     asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
+    //     _asm->log(asm_ofs);
+    //     break;
+    // case MODE_UNDEF:
+    // default:
+    //     break;
+    // }
     
-    ir->log(std::cout);
-
-    // next to gen riscv asm
-
-
-  return 0;
+    return 0;
 }

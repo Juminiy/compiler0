@@ -6,10 +6,17 @@
 #include <string>
 #include <ostream>
 #include <vector> 
+#include <string>
+#include <algorithm>
+#include <utility>
+
+#include <cctype>
 
 #include "_alib.hpp"
 #include "_ast.hpp"
 #include "_ptrlib.hpp"
+
+#include "koopa.h"
 
 __DEF_NS__(Alan)
 
@@ -20,14 +27,26 @@ public:
     virtual void log(std::ostream &) const = 0;
 };  
 
+using ValueKind = koopa_raw_value_tag_t;
+
 class ValueIR : public BaseIR
 {
 public:
-    explicit ValueIR(const std::string & _val)
+    explicit ValueIR(const std::string & _val,
+                    ValueKind _kind = KOOPA_RVT_UNDEF)
         : __val_(std::make_unique<std::string>
-                            (std::move(_val))) 
+                            (std::move(_val))),
+            __kind_(_kind) 
         { }
+    
     __DEF_ALL__(vir, ValueIR);
+
+    __MV_ASSI__(vir, 
+        this->__val_ = std::move(_c.__val_);
+        this->__kind_ = _c.__kind_;
+    )
+
+    __MV_SMTC__(vir, ValueIR)
 
     __FRIEND_OS_OPT__(vir, _ir)
     {   
@@ -37,9 +56,10 @@ public:
     }
     
     __MEMBER_FUNC_LOG_DECL__;
-    
+
 public:
     std::unique_ptr<std::string> __val_;
+    ValueKind __kind_;
 };
 
 class BasicBlockIR : public BaseIR
@@ -66,12 +86,20 @@ public:
                     std::to_string(
                         Alan::dynamic_uptr_cast<NumberAST, BaseAST>
                             (stmtPtr->__number_)->__int_const_
-                    )
+                    ),
+                    KOOPA_RVT_INTEGER
                 )
             );
         }
 
     __DEF_ALL__(bbir, BasicBlockIR);
+
+    __MV_ASSI__(bbir, 
+        this->__block_ast_ = std::move(_c.__block_ast_);
+        this->__instructions_ = std::move(_c.__instructions_);
+    )
+
+    __MV_SMTC__(bbir, BasicBlockIR)
 
     __FRIEND_OS_OPT__(bbir, _ir)
     {   
@@ -116,6 +144,12 @@ public:
                                     (__func_def_ast_->block))
                 )
             );
+            this->__fn_name_ = *(__func_def_ast_->ident);
+            // convert ast_type to ir_type
+            this->__fn_type_ = _type_conv(
+                *(Alan::dynamic_uptr_cast<FuncTypeAST, BaseAST>
+                    (this->__func_def_ast_->func_type)->__type_)
+            );
         }
     
     __DEF_ALL__(fir, FuncIR);
@@ -124,15 +158,11 @@ public:
     {
         __os << "fun " 
             << "@" 
-            << *(_ir.__func_def_ast_->ident)
+            << _ir.__fn_name_
             << "()" 
-            << ": ";
-            // TODO: construct and 
-            //          convert ast_type to ir_type
-        __os << _type_conv(
-            *(Alan::dynamic_uptr_cast<FuncTypeAST, BaseAST>
-                (_ir.__func_def_ast_->func_type)->__type_)
-            );
+            << ": " 
+            << _ir.__fn_type_;
+        
         __os << " {" << __LN__;
         __os << "%entry:" << __LN__;
         for(auto & _bb : _ir.__basic_blocks_)
@@ -148,6 +178,8 @@ public:
 
 public:
     std::vector<std::unique_ptr<BasicBlockIR>> __basic_blocks_;
+    std::string __fn_name_;
+    std::string __fn_type_;
 private:
     std::unique_ptr<FuncDefAST> __func_def_ast_;
 };
@@ -157,6 +189,12 @@ class ProgramIR : public BaseIR
 public:
     explicit ProgramIR(CompUnitAST & _cuast)
     {
+        // this->__global_vars_.push_back(
+        //     std::make_unique<ValueIR>(*
+        //         (Alan::dynamic_uptr_cast<, BaseAST>
+        //                                 ())
+        //     )
+        // );
         this->__funcs_.push_back(
             std::make_unique<FuncIR>(*
                 (Alan::dynamic_uptr_cast<FuncDefAST, BaseAST>
@@ -165,6 +203,14 @@ public:
         );
     }
     __DEF_ALL__(pir, ProgramIR);
+
+    __MV_ASSI__(pir, 
+        this->__global_vars_ = std::move(_c.__global_vars_);
+        this->__funcs_ = std::move(_c.__funcs_);
+    )
+
+    __MV_SMTC__(pir, ProgramIR)
+    
 
     __FRIEND_OS_OPT__(pir, _ir)
     {

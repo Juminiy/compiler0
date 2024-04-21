@@ -183,9 +183,84 @@
         void log(std::ostream& __os) const override \
         { __os << *this; }
 #define __MEMBER_FUNC_LOG_DECL__ \
-		void log(std::ostream& __os) const override
+	void log(std::ostream& __os) const override
 #define __MEMBER_FUNC_LOG_DEF__(__tp__) \
         void __tp__::log(std::ostream& __os) const \
         { __os << *this; }
+
+#define __MV_ASSI__(__alias_class__, __def_full_mv__) \
+        void assign(__alias_class__ ##_reference _c) \
+        noexcept { __def_full_mv__ } 
+
+#define __MV_SMTC__(__alias_class__, __class__) \
+        __class__(__alias_class__ ##_r_reference _mv_c) \
+        { this->assign(_mv_c); } \
+        __alias_class__ ##_reference operator = \
+        (__alias_class__ ##_r_reference _mv_c) \
+        { \
+            if (this != &_mv_c) [[likely]] \
+                this->assign(_mv_c); \
+            return *this; \
+        }
+
+#define __GEN_FUNC_COPY__ static inline
+
+// Macro parse argv
+#define MODE_UNDEF -1
+#define MODE_AST 0
+#define MODE_IR 1
+#define MODE_ASM 2
+#define MODE_ALL 3
+
+#include <cstdlib>
+#include <cstring>
+
+__GEN_FUNC_COPY__
+int parseMode 
+(const char * _mode) 
+{
+    if (!::strcmp(_mode, "-ast"))
+        return MODE_AST;
+    else if (!::strcmp(_mode, "-koopa"))
+        return MODE_IR;
+    else if (!::strcmp(_mode, "-asm")||
+			!::strcmp(_mode, "-riscv"))
+        return MODE_ASM;
+    else if(!::strcmp(_mode, "-all"))
+        return MODE_ALL;
+    return MODE_UNDEF;
+};
+
+// 012345678910
+// test/hello.s
+__GEN_FUNC_COPY__
+char * parseGetOutputByInput
+(const char * _input, const char * _suffix UNUSED = ".s")
+{   
+    size_t _i = 0, _st = 0;
+    while( _i < ::strlen(_input) && 
+            _input[_i] != '.')
+    {
+        // if (_input[_i] == '/')
+        //     _st = _i + 1;
+        // else 
+        if (_input[_i] == '.')
+            break;
+        ++_i;
+    }
+    char * __output = 
+        (char *)(malloc(sizeof(char) * (_i-_st)));
+    ::strncpy(__output, _input + _st, _i-_st);
+    return __output;
+}
+
+__GEN_FUNC_COPY__
+char * _strcat_dup(const char * _src, const char * _const)
+{
+    return ::strcat(::strdup(_src), _const);
+}
+
+#define __STR_CAT__(__src__, __const__) \
+        _strcat_dup(__src__, __const__)
 
 #endif

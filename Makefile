@@ -94,13 +94,26 @@ $(BUILD_DIR)/%.tab$(FB_EXT): $(SRC_DIR)/%.y
 	mkdir -p $(dir $@)
 	$(BISON) $(BFLAGS) -o $@ $<
 
-# outout Koopa
-outfile: $(BUILD_DIR)/$(TARGET_EXEC)
+# output Dest #-stdout=1
+outast: 
+	build/compiler -ast test/hello.sysy -o test/hello.ast
+outir: 
 	build/compiler -koopa test/hello.sysy -o test/hello.koopa
+outasm: 
+	build/compiler -riscv test/hello.sysy -o test/hello.s
+outall: 
+	build/compiler -all test/hello.sysy -o test/hello.
+
+# midout = test/hello.*
+midout += test/hello.
+midout += test/hello.ast
+midout += test/hello.koopa
+midout += test/hello.s
 
 .PHONY: clean
 
 clean:
-	-rm -rf $(BUILD_DIR)
+	-rm -rf $(BUILD_DIR) 
+	-rm -rf $(midout)
 
 -include $(DEPS)
