@@ -37,15 +37,17 @@ int main(int argc, const char *argv[]) {
     yyin = fopen(input, "r");
     assert(yyin);
     int _mode_num = parseMode(mode);
+    std::ofstream ast_ofs, ir_ofs, asm_ofs;
+    auto _plain_ofs = std::ofstream(output);
 
     // gen AST
     std::unique_ptr<BaseAST> _ast;
-    // 调用 parser 函数, parser 函数会进一步调用 lexer 解析输入文件的
     auto ret = yyparse(_ast);
     assert(!ret);
-    auto ast_ofs = std::ofstream(output);
     if (_mode_num >= MODE_ALL)
         ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
+    else 
+        ast_ofs = std::move(_plain_ofs);
     if (_mode_num == MODE_AST ||
         _mode_num == MODE_ALL)
         _ast->log(ast_ofs);
@@ -53,10 +55,11 @@ int main(int argc, const char *argv[]) {
     // gen IR 
     auto _ir = 
         std::make_unique<Alan::ProgramIR>
-        (*Alan::dynamic_uptr_cast<CompUnitAST, BaseAST>(_ast));
-    auto ir_ofs = std::ofstream(output);
+        (*Alan::static_uptr_cast<CompUnitAST, BaseAST>(_ast));
     if (_mode_num >= MODE_ALL)
         ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
+    else 
+        ir_ofs = std::move(_plain_ofs);
     if (_mode_num == MODE_IR ||
         _mode_num == MODE_ALL)
         _ir->log(ir_ofs);
@@ -64,38 +67,13 @@ int main(int argc, const char *argv[]) {
     // gen ASM(RV64I)
     auto _asm = 
         std::make_unique<Alan::RV64::I::ProgramAsmGenerator>(*_ir);
-    auto asm_ofs = std::ofstream(output);
     if (_mode_num >= MODE_ALL)
         asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
+    else 
+        asm_ofs = std::move(_plain_ofs);
     if (_mode_num == MODE_ASM ||
         _mode_num == MODE_ALL)
         _asm->log(asm_ofs);
 
-    // // TODO: to support std::cout
-    // // TODO: because of unique_ptr, it realease, Fuck!!! elegant a not!!! !!!
-    // switch (parseMode(mode))
-    // {
-    // case MODE_AST:
-    //     _ast->log(ast_ofs);
-    //     break;
-    // case MODE_IR:
-    //     _ir->log(ir_ofs);
-    //     break;
-    // case MODE_ASM:
-    //     _asm->log(asm_ofs);
-    //     break;
-    // case MODE_ALL:
-    //     ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
-    //     _ast->log(ast_ofs);
-    //     ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
-    //     _ir->log(ir_ofs);
-    //     asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
-    //     _asm->log(asm_ofs);
-    //     break;
-    // case MODE_UNDEF:
-    // default:
-    //     break;
-    // }
-    
     return 0;
 }

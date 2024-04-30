@@ -43,8 +43,8 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符的类型定义
-%type <ast_val> FuncDef FuncType Block Stmt Number
-// %type <int_val> Number
+%type <ast_val> FuncDef FuncType Block Stmt 
+%type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
 
 %%
 
@@ -106,14 +106,39 @@ Block
   ;
 
 Stmt
-  : RETURN Number ';' {
+  : RETURN Exp ';' {
     // auto number = unique_ptr<string>($2);
     // $$ = new string("return " + *number + ";");
     auto stmt = make_unique<StmtAST>();
     stmt->__ret_ = make_unique<std::string>("return");
-    stmt->__number_ = unique_ptr<BaseAST>($2);
+    stmt->__expr_ = unique_ptr<BaseAST>($Exp);
     $$ = stmt.release();
   }
+  ;
+
+Exp
+  // TODO: fully fix it
+  // : LOrExp {
+  : UnaryExp {
+    auto expr = make_unique<ExprAST>();
+    expr->__unary_expr_ = unique_ptr<BaseAST>($UnaryExp);
+    $$ = expr.release();
+  }
+  ;
+
+PrimaryExp
+  : '(' Exp ')' {
+      auto pri_expr = make_unique<PrimaryExprAST>();
+      pri_expr->__expr_ = unique_ptr<BaseAST>($Exp);
+      pri_expr->__sub_expr_type_ = __PriExpr_Expr;
+      $$ = pri_expr.release(); 
+    }
+    | Number {
+      auto pri_expr = make_unique<PrimaryExprAST>();
+      pri_expr->__number_ = unique_ptr<BaseAST>($Number);
+      pri_expr->__sub_expr_type_ = __PriExpr_Num;
+      $$ = pri_expr.release();
+    }
   ;
 
 Number
@@ -123,6 +148,64 @@ Number
     $$ = number.release();
   }
   ;
+
+UnaryExp
+  : PrimaryExp {
+      auto unary_expr = make_unique<UnaryExpAST>();
+      unary_expr->__primary_expr_ = unique_ptr<BaseAST>($1);
+      unary_expr->__sub_expr_type_ = __UnaExpr_Pri;
+      $$ = unary_expr.release();
+    }
+    | UnaryOp UnaryExp {
+      auto unary_expr = make_unique<UnaryExpAST>();
+      unary_expr->__unary_op_ = unique_ptr<BaseAST>($1);
+      unary_expr->__unary_expr_ = unique_ptr<BaseAST>($2);
+      unary_expr->__sub_expr_type_ = __UnaExpr_Una;
+      $$ = unary_expr.release();
+    } 
+  ;
+
+UnaryOp
+  : '+'   { $$ = make_unique<UnaryOpAST>(__UnaOp_Plus).release(); }
+    | '-' { $$ = make_unique<UnaryOpAST>(__UnaOp_Minus).release(); }
+    | '!' { $$ = make_unique<UnaryOpAST>(__UnaOp_Not).release(); }
+  ;
+
+// MulExp
+//   : UnaryExp | MulExp ('*' | '/' | '%') UnaryExp {
+
+//   }
+//   ;
+
+// AddExp
+//   : MulExp | AddExp ('+' | '-') MulExp {
+
+//   }
+//   ;
+
+// RelExp
+//   : AddExp | RelExp ('<' | '>' | "<=" | ">=") AddExp {
+
+//   }
+//   ;
+
+// EqExp 
+//   : RelExp | EqExp ("==" | "!=") RelExp {
+
+//   }
+//   ;
+
+// LAndExp 
+//   : EqExp | LAndExp "&&" EqExp {
+
+//   }
+//   ;
+
+// LOrExp 
+//   : LAndExp | LOrExp "||" LAndExp {
+
+//   }
+//   ;
 
 %%
 

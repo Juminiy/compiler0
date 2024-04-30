@@ -9,8 +9,10 @@
 #include <string>
 #include <algorithm>
 #include <utility>
+#include <stack>
 
 #include <cctype>
+#include <cassert>
 
 #include "_alib.hpp"
 #include "_ast.hpp"
@@ -65,31 +67,53 @@ public:
 class BasicBlockIR : public BaseIR
 {
 public:
+    __CLASS_GLB_FN__ 
     std::string _conv_stmt(const std::string &_stmt)
     {
         if (_stmt == "return")
             return std::string("ret");
-        return "__stmt_";
+        return "__block_";
     }    
+    __CLASS_GLB_FN__ 
+    std::string _make_tmp(int _id, const std::string &_prf = "%")
+    {
+        return _prf + std::to_string(_id);
+    }
+    __CLASS_UNIQUE__ std::string __unkown_tmp_id_;
+    __CLASS_UNIQUE__ std::string __named_id_prefix_;
+    __CLASS_UNIQUE__ std::string __unamed_id_prefix_;
+public:
+    int __tmp_id_;
+    std::stack<std::string> __tmp_opd_stk_;
+    std::stack<std::string> __tmp_opt_stk_;
+    std::stack<std::string> __tmp_ass_stk_;
+#define __Unary_Lval "0"
+public:
+    void traverseExpr(ast_uptr _expr);
 public:
     explicit BasicBlockIR(BlockAST & _bast)
         : __block_ast_(std::make_unique<BlockAST>
                                     (std::move(_bast)))
         { 
-            auto stmtPtr = Alan::dynamic_uptr_cast<StmtAST, BaseAST>
+            auto stmtPtr = Alan::static_uptr_cast<StmtAST, BaseAST>
                             (__block_ast_->__stmt_);
+            auto exprPtr = Alan::static_uptr_cast<ExprAST, BaseAST>
+                            (stmtPtr->__expr_);
+            
+            // I wanna try to optimize
+            // start recursive
+            this->__tmp_id_ = 0;
+            
+            traverseExpr(std::move(exprPtr));
+
             __instructions_.push_back(
-                std::make_unique<ValueIR>(
-                    "\t" +
-                    _conv_stmt(*(stmtPtr->__ret_)) + 
-                    " " + 
-                    std::to_string(
-                        Alan::dynamic_uptr_cast<NumberAST, BaseAST>
-                            (stmtPtr->__number_)->__int_const_
-                    ),
-                    KOOPA_RVT_INTEGER
-                )
-            );
+            std::make_unique<ValueIR>(
+                "\t" + _conv_stmt(*(stmtPtr->__ret_)) + 
+                " " + __tmp_opd_stk_.top()
+                ,
+                KOOPA_RVT_INTEGER
+            )
+        );
         }
 
     __DEF_ALL__(bbir, BasicBlockIR);
@@ -140,14 +164,14 @@ public:
         { 
             this->__basic_blocks_.push_back(
                 std::make_unique<BasicBlockIR>(*(
-                    Alan::dynamic_uptr_cast<BlockAST, BaseAST>
+                    Alan::static_uptr_cast<BlockAST, BaseAST>
                                     (__func_def_ast_->block))
                 )
             );
             this->__fn_name_ = *(__func_def_ast_->ident);
             // convert ast_type to ir_type
             this->__fn_type_ = _type_conv(
-                *(Alan::dynamic_uptr_cast<FuncTypeAST, BaseAST>
+                *(Alan::static_uptr_cast<FuncTypeAST, BaseAST>
                     (this->__func_def_ast_->func_type)->__type_)
             );
         }
@@ -191,13 +215,13 @@ public:
     {
         // this->__global_vars_.push_back(
         //     std::make_unique<ValueIR>(*
-        //         (Alan::dynamic_uptr_cast<, BaseAST>
+        //         (Alan::static_uptr_cast<, BaseAST>
         //                                 ())
         //     )
         // );
         this->__funcs_.push_back(
             std::make_unique<FuncIR>(*
-                (Alan::dynamic_uptr_cast<FuncDefAST, BaseAST>
+                (Alan::static_uptr_cast<FuncDefAST, BaseAST>
                                         (_cuast.func_def))
             )
         );

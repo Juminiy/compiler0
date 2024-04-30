@@ -176,9 +176,13 @@
         __DEF_PTR_TO_CONST_V2__(__alias_type__); \
         __DEF_CONST_PTR_TO_CONST_V2__(__alias_type__)
 
-#define __FRIEND_OS_OPT__(__tp__, __tp_val_) \
+#define __FRIEND_OS_OPT__(__class__, __var_id_) \
         friend std::ostream& \
-            operator << (std::ostream& __os, __CONST_REF__(__tp__) __tp_val_)
+            operator << (std::ostream& __os, __CONST_REF__(__class__) __var_id_)
+#define __FRIEND_IS_OPT__(__class__, __var_id_) \
+        friend std::istream& \
+            operator >> (std::istream& __is, __REF__(__class__) __var_id_)
+
 #define __MEMBER_FUNC_LOG_OVERRIDE__ \
         void log(std::ostream& __os) const override \
         { __os << *this; }
@@ -203,7 +207,33 @@
             return *this; \
         }
 
+// 1. alias typedef(using)
+// 2. friend iostream operator << >> overload
+//  (1). log() override
+// 3. move semantics
+// 4. copy semantics
+// 5. ...coming
+#define __DEF_CLASS_FULL__(__class_alias__, \
+                            __class__, \
+                            __var_id__, \
+                            __os_actions__, \
+                            __is_actions__, \
+                            __assign_actions__) \
+    public: \
+        __DEF_ALL__(__class_alias__, __class__); \
+        __MV_ASSI__(__class_alias__, __assign_actions__) \
+        __MV_SMTC__(__class_alias__, __class__) \
+        __FRIEND_OS_OPT__(__class__, __var_id__) \
+            { __os_actions__ return __os; } \
+        __FRIEND_IS_OPT__(__class__, __var_id__) \
+            { __is_actions__ return __is; } \
+        __MEMBER_FUNC_LOG_OVERRIDE__
+        
+
 #define __GEN_FUNC_COPY__ static inline
+#define __CLASS_GLB_FN__ static inline
+#define __CLASS_GLB_VA__ static
+#define __CLASS_UNIQUE__ static const
 
 // Macro parse argv
 #define MODE_UNDEF -1
@@ -262,5 +292,31 @@ char * _strcat_dup(const char * _src, const char * _const)
 
 #define __STR_CAT__(__src__, __const__) \
         _strcat_dup(__src__, __const__)
+
+// // TODO: to support std::cout
+    // // TODO: because of unique_ptr, it realease, Fuck!!! elegant a not!!! !!!
+    // switch (parseMode(mode))
+    // {
+    // case MODE_AST:
+    //     _ast->log(ast_ofs);
+    //     break;
+    // case MODE_IR:
+    //     _ir->log(ir_ofs);
+    //     break;
+    // case MODE_ASM:
+    //     _asm->log(asm_ofs);
+    //     break;
+    // case MODE_ALL:
+    //     ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
+    //     _ast->log(ast_ofs);
+    //     ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
+    //     _ir->log(ir_ofs);
+    //     asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
+    //     _asm->log(asm_ofs);
+    //     break;
+    // case MODE_UNDEF:
+    // default:
+    //     break;
+    // }
 
 #endif
