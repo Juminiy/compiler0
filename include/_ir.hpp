@@ -29,13 +29,14 @@ public:
     virtual void log(std::ostream &) const = 0;
 };  
 
-using ValueKind = koopa_raw_value_tag_t;
+using IRKind = koopa_raw_value_tag_t;
+using IRCate = size_t;
 
 class ValueIR : public BaseIR
 {
 public:
     explicit ValueIR(const std::string & _val,
-                    ValueKind _kind = KOOPA_RVT_UNDEF)
+                    IRKind _kind = KOOPA_RVT_UNDEF)
         : __val_(std::make_unique<std::string>
                             (std::move(_val))),
             __kind_(_kind) 
@@ -61,19 +62,28 @@ public:
 
 public:
     std::unique_ptr<std::string> __val_;
-    ValueKind __kind_;
+    IRKind __kind_;
+    IRCate __cate_;
+
 };
 
 class BasicBlockIR : public BaseIR
 {
 public:
     __CLASS_GLB_FN__ 
-    std::string _conv_stmt(const std::string &_stmt)
+    std::string __conv_keyword_(const std::string &_keyword)
     {
-        if (_stmt == "return")
+        if (_keyword == "return")
             return std::string("ret");
-        return "__block_";
-    }    
+        else if (_keyword == "!")
+            return std::string("eq");
+        else if (_keyword == "-")
+            return std::string("sub");
+        else if (_keyword == "+")
+            return std::string("add");
+        return "__nani?__";
+    }   
+
     __CLASS_GLB_FN__ 
     std::string _make_tmp(int _id, const std::string &_prf = "%")
     {
@@ -83,10 +93,45 @@ public:
     __CLASS_UNIQUE__ std::string __named_id_prefix_;
     __CLASS_UNIQUE__ std::string __unamed_id_prefix_;
 public:
-    int __tmp_id_;
-    std::stack<std::string> __tmp_opd_stk_;
-    std::stack<std::string> __tmp_opt_stk_;
-    std::stack<std::string> __tmp_ass_stk_;
+    int __tmp_id_;  // tmp assigned val
+    std::stack<std::string> __tmp_opd_stk_; // operand
+    std::stack<char> __tmp_opt_stk_; // operator
+    std::stack<std::string> __tmp_ass_stk_; // assign operand
+public:
+#define __bbir_ret_val 0
+#define __bbir_ass_val 1
+    void __push_val_
+    (const std::vector<std::string> & _list, int _val_type = __bbir_ret_val)
+    {
+        switch (_val_type)
+        {
+        case __bbir_ret_val:
+            assert(_list.size() >= 2);
+            __instructions_.push_back(
+            std::make_unique<ValueIR>(
+                "\t" + __conv_keyword_(_list[0]) + 
+                " " + _list[1]
+                ,
+                KOOPA_RVT_INTEGER)
+            );
+            break;
+        case __bbir_ass_val:
+            assert(_list.size() >= 4);
+            __instructions_.push_back(
+                std::make_unique<ValueIR>(
+                "\t" + _list[0] + 
+                " = " + _list[1] + " " + 
+                _list[2] + ", " +
+                _list[3]
+                ,
+                KOOPA_RVT_INTEGER)
+            );
+            break;
+        default:
+            assert(0);
+        }
+               
+    }
 #define __Unary_Lval "0"
 public:
     void traverseExpr(ast_uptr _expr);
@@ -102,18 +147,24 @@ public:
             
             // I wanna try to optimize
             // start recursive
-            this->__tmp_id_ = 0;
+            this->__tmp_id_ = -1;
             
             traverseExpr(std::move(exprPtr));
 
-            __instructions_.push_back(
-            std::make_unique<ValueIR>(
-                "\t" + _conv_stmt(*(stmtPtr->__ret_)) + 
-                " " + __tmp_opd_stk_.top()
-                ,
-                KOOPA_RVT_INTEGER
-            )
-        );
+            while(!__tmp_opt_stk_.empty() &&
+                    __tmp_opd_stk_.size() >= 2)
+                {
+                    auto _opt = __tmp_opt_stk_.top(); __tmp_opt_stk_.pop();
+                    auto _ropd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
+                    auto _lopd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
+                    auto _assi = _make_tmp(++__tmp_id_);
+                    __tmp_opd_stk_.push(__Unary_Lval);
+                    __tmp_opd_stk_.push(_assi); 
+                    auto _optr = __conv_keyword_(std::string(1, _opt));
+                    __push_val_({_assi, _optr, _lopd, _ropd}, __bbir_ass_val);
+                }
+
+            __push_val_({*stmtPtr->__ret_, __tmp_opd_stk_.top()}, __bbir_ret_val);
         }
 
     __DEF_ALL__(bbir, BasicBlockIR);

@@ -38,7 +38,6 @@ int main(int argc, const char *argv[]) {
     assert(yyin);
     int _mode_num = parseMode(mode);
     std::ofstream ast_ofs, ir_ofs, asm_ofs;
-    auto _plain_ofs = std::ofstream(output);
 
     // gen AST
     std::unique_ptr<BaseAST> _ast;
@@ -47,7 +46,7 @@ int main(int argc, const char *argv[]) {
     if (_mode_num >= MODE_ALL)
         ast_ofs = std::ofstream(__STR_CAT__(output_v2, ".ast"));
     else 
-        ast_ofs = std::move(_plain_ofs);
+        ast_ofs = std::ofstream(output);
     if (_mode_num == MODE_AST ||
         _mode_num == MODE_ALL)
         _ast->log(ast_ofs);
@@ -59,7 +58,7 @@ int main(int argc, const char *argv[]) {
     if (_mode_num >= MODE_ALL)
         ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
     else 
-        ir_ofs = std::move(_plain_ofs);
+        ir_ofs = std::ofstream(output);
     if (_mode_num == MODE_IR ||
         _mode_num == MODE_ALL)
         _ir->log(ir_ofs);
@@ -70,7 +69,7 @@ int main(int argc, const char *argv[]) {
     if (_mode_num >= MODE_ALL)
         asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
     else 
-        asm_ofs = std::move(_plain_ofs);
+        asm_ofs = std::ofstream(output);
     if (_mode_num == MODE_ASM ||
         _mode_num == MODE_ALL)
         _asm->log(asm_ofs);

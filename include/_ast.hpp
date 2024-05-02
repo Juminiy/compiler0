@@ -15,6 +15,17 @@
 #define __override_ast_tid__ \
         size_t tid() const override { return __ast_tid_; }
 
+#define COMP_UNIT_AST 0
+#define FUNC_DEF_AST 1
+#define FUNC_TYPE_AST 2
+#define BLOCK_AST 3
+#define STMT_AST 4
+#define EXPR_AST 5
+#define PRIMARY_EXPR_AST 6
+#define NUMBER_AST 7
+#define UNARY_EXPR_AST 8
+#define UNARY_OP_AST 9
+
 class BaseAST {
  public:
   virtual ~BaseAST() = default;
@@ -23,6 +34,12 @@ class BaseAST {
 };
 
 using ast_uptr = std::unique_ptr<BaseAST>;
+
+__GEN_FUNC_COPY__
+void __recover_ast_uptr_(ast_uptr )
+{
+
+}
 
 class CompUnitAST : public BaseAST {
  public:
