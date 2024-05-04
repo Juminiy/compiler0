@@ -12,7 +12,7 @@
 #include "../include/_alib.hpp"
 #include "../include/_ast.hpp"
 #include "../include/_ir.hpp"
-#include "../include/_ptrlib.hpp"
+#include "../include/_stllib.hpp"
 #include "../include/_rv64i.hpp"
 
 // 声明 lexer 的输入, 以及 parser 函数

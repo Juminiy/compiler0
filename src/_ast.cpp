@@ -11,3 +11,6 @@ __def_ast_tid__(PrimaryExprAST, PRIMARY_EXPR_AST);
 __def_ast_tid__(NumberAST, NUMBER_AST);
 __def_ast_tid__(UnaryExpAST, UNARY_EXPR_AST);
 __def_ast_tid__(UnaryOpAST, UNARY_OP_AST);
+__def_ast_tid__(MulExpAST, MUL_EXPR_AST);
+__def_ast_tid__(AddExpAST, ADD_EXPR_AST);
+__def_ast_tid__(BinOpAST, BINARY_OP_AST);

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef _PTRLIB_HPP
-#define _PTRLIB_HPP
+#ifndef _STLLIB_HPP
+#define _STLLIB_HPP
 
 #include <cassert>
 #include <memory>
@@ -40,6 +40,29 @@ dynamic_uptr_cast
         return nullptr;
     }
 }
+
+template < typename _Tp >
+__GEN_FUNC_COPY__
+void __debug_stack_(std::stack<_Tp> __stk_)
+    noexcept
+{
+    PRINT("[ ");
+    switch (__stk_.size())
+    {
+    case 0:
+        break;
+    default:
+        PRINT(__stk_.top());
+        __stk_.pop();
+        break;
+    }
+    while(!__stk_.empty())
+    {
+        PRINT(", "), PRINT(__stk_.top());
+        __stk_.pop();
+    }
+    PRINTLN(" ]");
+}   
 
 __END_NS__
 

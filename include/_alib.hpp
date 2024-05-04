@@ -183,19 +183,28 @@
         friend std::istream& \
             operator >> (std::istream& __is, __REF__(__class__) __var_id_)
 
+// decl and define in class inner
 #define __MEMBER_FUNC_LOG_OVERRIDE__ \
         void log(std::ostream& __os) const override \
         { __os << *this; }
+// decl in class inner
 #define __MEMBER_FUNC_LOG_DECL__ \
 	void log(std::ostream& __os) const override
+// define in class outer 
 #define __MEMBER_FUNC_LOG_DEF__(__tp__) \
         void __tp__::log(std::ostream& __os) const \
         { __os << *this; }
 
+// move assign operation of type && -> 
+// for: move rvalue reference
+// not for: universal reference
 #define __MV_ASSI__(__alias_class__, __def_full_mv__) \
         void assign(__alias_class__ ##_reference _c) \
         noexcept { __def_full_mv__ } 
 
+// 1. move constructor
+// 2. move assignment operator
+// use __MV_ASSI__ Macro define above
 #define __MV_SMTC__(__alias_class__, __class__) \
         __class__(__alias_class__ ##_r_reference _mv_c) \
         { this->assign(_mv_c); } \
@@ -207,12 +216,12 @@
             return *this; \
         }
 
-// 1. alias typedef(using)
-// 2. friend iostream operator << >> overload
-//  (1). log() override
-// 3. move semantics
-// 4. copy semantics
-// 5. ...coming
+// 1. typedef(using): alias of class
+// 2. member function assign(): for move semantics
+// 3. move semantics: used (2)
+// 4. friend ostream operator << overload
+// 5. friend istream operator >> overload
+// 6. member function log() override: used (4)
 #define __DEF_CLASS_FULL__(__class_alias__, \
                             __class__, \
                             __var_id__, \
@@ -229,7 +238,7 @@
             { __is_actions__ return __is; } \
         __MEMBER_FUNC_LOG_OVERRIDE__
         
-
+// function or variable category decorator
 #define __GEN_FUNC_COPY__ static inline
 #define __CLASS_GLB_FN__ static inline
 #define __CLASS_GLB_VA__ static

@@ -3,16 +3,6 @@
 
 __USE_NS__(Alan);
 
-__MEMBER_FUNC_LOG_DEF__(ProgramIR)
-
-__MEMBER_FUNC_LOG_DEF__(FuncIR)
-
-__MEMBER_FUNC_LOG_DEF__(BasicBlockIR)
-
-const std::string BasicBlockIR::__unkown_tmp_id_("%?");
-const std::string BasicBlockIR::__named_id_prefix_("@");
-const std::string BasicBlockIR::__unamed_id_prefix_("%");
-
 // void BasicBlockIR::traverseExpr(ast_uptr _expr) 
 //     {   
 //         std::unique_ptr<ExprAST> exprPtr;
@@ -130,6 +120,10 @@ const std::string BasicBlockIR::__unamed_id_prefix_("%");
 //         // );
 // }
 
+const std::string BasicBlockIR::__unkown_tmp_id_("%?");
+const std::string BasicBlockIR::__named_id_prefix_("@");
+const std::string BasicBlockIR::__unamed_id_prefix_("%");
+
 void BasicBlockIR::traverseExpr(ast_uptr _expr) 
 {
     std::unique_ptr<ExprAST> expr;
@@ -137,12 +131,15 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
     std::unique_ptr<UnaryExpAST> unaryExpr;
     std::unique_ptr<UnaryOpAST> unaryOp;
     std::unique_ptr<NumberAST> numberN;
+    std::unique_ptr<MulExpAST> mulExpr;
+    std::unique_ptr<AddExpAST> addExpr;
+    std::unique_ptr<BinOpAST> binOp;
 
     switch (_expr->tid())
     {
     case EXPR_AST:
         expr = Alan::static_uptr_cast<ExprAST, BaseAST>(_expr);
-        traverseExpr(std::move(expr->__unary_expr_));
+        traverseExpr(std::move(expr->__add_expr_));
         break;
     case PRIMARY_EXPR_AST:
         priExpr = Alan::static_uptr_cast<PrimaryExprAST, BaseAST>(_expr);
@@ -182,10 +179,45 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
         unaryOp = Alan::static_uptr_cast<UnaryOpAST, BaseAST>(_expr);
         __tmp_opt_stk_.push(unaryOp->__operator_);
         break;
+    case MUL_EXPR_AST:
+        mulExpr = Alan::static_uptr_cast<MulExpAST, BaseAST>(_expr);
+        switch (mulExpr->__sub_expr_type_)
+        {
+        case __MulExpr_Una:
+            traverseExpr(std::move(mulExpr->__unary_expr_));
+            break;
+        case __MulExpr_Mul:
+            traverseExpr(std::move(mulExpr->__mul_expr_));
+            traverseExpr(std::move(mulExpr->__bin_op_));
+            traverseExpr(std::move(mulExpr->__unary_expr_));
+            break;
+        default:
+            assert(0);
+        }
+        break;
+    case ADD_EXPR_AST:
+        addExpr = Alan::static_uptr_cast<AddExpAST, BaseAST>(_expr);
+        switch (addExpr->__sub_expr_type_)
+        {
+        case __AddExpr_Mul:
+            traverseExpr(std::move(addExpr->__mul_expr_));
+            break;
+        case __AddExpr_Add:
+            traverseExpr(std::move(addExpr->__add_expr_));
+            traverseExpr(std::move(addExpr->__bin_op_));
+            traverseExpr(std::move(addExpr->__mul_expr_));
+            break;
+        default:
+            assert(0);
+        }
+        break;
+    case BINARY_OP_AST:
+        binOp = Alan::static_uptr_cast<BinOpAST, BaseAST>(_expr);
+        __tmp_opt_stk_.push(binOp->__operator_);
+        break;
     default:
         assert(0);
     }
 
 }
 
-__MEMBER_FUNC_LOG_DEF__(ValueIR)

@@ -16,7 +16,7 @@
 
 #include "_alib.hpp"
 #include "_ast.hpp"
-#include "_ptrlib.hpp"
+#include "_stllib.hpp"
 
 #include "koopa.h"
 
@@ -58,7 +58,7 @@ public:
         return __os;
     }
     
-    __MEMBER_FUNC_LOG_DECL__;
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 public:
     std::unique_ptr<std::string> __val_;
@@ -81,6 +81,12 @@ public:
             return std::string("sub");
         else if (_keyword == "+")
             return std::string("add");
+        else if (_keyword == "*")
+            return std::string("mul");
+        else if (_keyword == "/")
+            return std::string("div");
+        else if (_keyword == "%")
+            return std::string("rem");
         return "__nani?__";
     }   
 
@@ -96,7 +102,7 @@ public:
     int __tmp_id_;  // tmp assigned val
     std::stack<std::string> __tmp_opd_stk_; // operand
     std::stack<char> __tmp_opt_stk_; // operator
-    std::stack<std::string> __tmp_ass_stk_; // assign operand
+    // std::stack<std::string> __tmp_ass_stk_; // assign operand
 public:
 #define __bbir_ret_val 0
 #define __bbir_ass_val 1
@@ -151,6 +157,11 @@ public:
             
             traverseExpr(std::move(exprPtr));
 
+            #if DEBUG == 1
+                __debug_stack_(__tmp_opt_stk_);
+                __debug_stack_(__tmp_opd_stk_);
+            #endif 
+
             while(!__tmp_opt_stk_.empty() &&
                     __tmp_opd_stk_.size() >= 2)
                 {
@@ -185,7 +196,7 @@ public:
         return __os;
     }
     
-    __MEMBER_FUNC_LOG_DECL__;
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 public:
     std::vector<std::unique_ptr<ValueIR>> __instructions_;
@@ -249,7 +260,7 @@ public:
         return __os;
     }
 
-    __MEMBER_FUNC_LOG_DECL__;
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 public:
     std::vector<std::unique_ptr<BasicBlockIR>> __basic_blocks_;
@@ -286,7 +297,6 @@ public:
 
     __MV_SMTC__(pir, ProgramIR)
     
-
     __FRIEND_OS_OPT__(pir, _ir)
     {
         // ir global variables
@@ -305,7 +315,7 @@ public:
         return __os;
     }
 
-    __MEMBER_FUNC_LOG_DECL__;
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 public:
     std::vector<std::unique_ptr<ValueIR>> __global_vars_;

@@ -7,3 +7,4 @@
 ## Self define, Extended
 1. number operator '<<<', '>>>', which same kind like number operator '<<', '>>'
 2. runtime
+3. x86_64, arm64
