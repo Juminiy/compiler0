@@ -61,7 +61,7 @@ public:
     __MEMBER_FUNC_LOG_OVERRIDE__
 
 public:
-    std::unique_ptr<std::string> __val_;
+    str_uptr __val_;
     IRKind __kind_;
     IRCate __cate_;
 
@@ -70,24 +70,31 @@ public:
 class BasicBlockIR : public BaseIR
 {
 public:
+    /* reference from: https://pku-minic.github.io/online-doc/#/misc-app-ref/koopa
+    ne, eq, gt, lt, ge, le, add, sub, mul, div, mod, and, or, xor, shl, shr, sar.
+    */
     __CLASS_GLB_FN__ 
     std::string __conv_keyword_(const std::string &_keyword)
     {
-        if (_keyword == "return")
-            return std::string("ret");
-        else if (_keyword == "!")
-            return std::string("eq");
-        else if (_keyword == "-")
-            return std::string("sub");
-        else if (_keyword == "+")
-            return std::string("add");
-        else if (_keyword == "*")
-            return std::string("mul");
-        else if (_keyword == "/")
-            return std::string("div");
-        else if (_keyword == "%")
-            return std::string("rem");
-        return "__nani?__";
+        if (_keyword == "return") return std::string("ret");
+        else if(_keyword == "!=") return "ne";
+        else if (_keyword == "!" || _keyword == "==") return "eq";
+        else if(_keyword == ">") return "gt";
+        else if(_keyword == "<") return "lt";
+        else if(_keyword == ">=") return "ge";
+        else if(_keyword == "<=") return "le";
+        else if (_keyword == "+") return "add";
+        else if (_keyword == "-") return "sub";
+        else if (_keyword == "*") return "mul";
+        else if (_keyword == "/") return "div";
+        else if (_keyword == "%") return "mod"; // rem in riscv-i64
+        else if(_keyword == "&&") return "and";
+        else if(_keyword == "||") return "or";
+        else if(_keyword == "^") return "xor";
+        else if(_keyword == "<<") return "shl"; // shift left
+        else if (_keyword == ">>") return "shr"; // shift right
+        else if (_keyword == ">>?") return "sar"; // shift arithmetic right
+        else return "__nani?__";
     }   
 
     __CLASS_GLB_FN__ 
@@ -101,7 +108,7 @@ public:
 public:
     int __tmp_id_;  // tmp assigned val
     std::stack<std::string> __tmp_opd_stk_; // operand
-    std::stack<char> __tmp_opt_stk_; // operator
+    std::stack<std::string> __tmp_opt_stk_; // operator
     // std::stack<std::string> __tmp_ass_stk_; // assign operand
 public:
 #define __bbir_ret_val 0
@@ -169,9 +176,9 @@ public:
                     auto _ropd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
                     auto _lopd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
                     auto _assi = _make_tmp(++__tmp_id_);
-                    __tmp_opd_stk_.push(__Unary_Lval);
+                    // __tmp_opd_stk_.push(__Unary_Lval);
                     __tmp_opd_stk_.push(_assi); 
-                    auto _optr = __conv_keyword_(std::string(1, _opt));
+                    auto _optr = __conv_keyword_(_opt);
                     __push_val_({_assi, _optr, _lopd, _ropd}, __bbir_ass_val);
                 }
 

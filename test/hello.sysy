@@ -17,5 +17,11 @@ int main() {
   // */
   // */
 
-  return 1 + 2 * 3;
+  // test case1:
+  // return +(- - !6);
+  // test case2:
+  // return 1 + 2 * 3;
+  // test case3:
+  // (1+5)%3 && (3*5)/2 || (1+2-5*8);
+  return 2 >= 1;
 }

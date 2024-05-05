@@ -28,6 +28,11 @@
 #define MUL_EXPR_AST 10
 #define ADD_EXPR_AST 11
 #define BINARY_OP_AST 12
+#define REL_EXPR_AST 13
+#define EQ_EXPR_AST 14
+#define CMP_OP_AST 15
+#define LAND_EXPR_AST 16
+#define LOR_EXPR_AST 17
 
 class BaseAST {
  public:
@@ -37,6 +42,7 @@ class BaseAST {
 };
 
 using ast_uptr = std::unique_ptr<BaseAST>;
+using str_uptr = std::unique_ptr<std::string>;
 
 class CompUnitAST : public BaseAST {
 public:
@@ -59,7 +65,7 @@ __override_ast_tid__
 class FuncDefAST : public BaseAST {
 public:
     ast_uptr func_type;
-    std::unique_ptr<std::string> ident;
+    str_uptr ident;
     ast_uptr block;
 
     __FRIEND_OS_OPT__(FuncDefAST, _a)
@@ -79,7 +85,7 @@ __override_ast_tid__
 
 class FuncTypeAST : public BaseAST {
 public:
-    std::unique_ptr<std::string> __type_;
+    str_uptr __type_;
 
     __FRIEND_OS_OPT__(FuncTypeAST, _a)
     {
@@ -113,7 +119,7 @@ __override_ast_tid__
 
 class StmtAST : public BaseAST {
 public:
-    std::unique_ptr<std::string> __ret_;
+    str_uptr __ret_;
     ast_uptr __expr_;
 
     __FRIEND_OS_OPT__(StmtAST, _a)
@@ -131,14 +137,14 @@ __override_ast_tid__
 
 class ExprAST : public BaseAST {
 public:
-    ast_uptr __add_expr_;
+    ast_uptr __lor_expr_;
 
     __DEF_ALL__(expr, ExprAST);
 
     __FRIEND_OS_OPT__(ExprAST, _a)
     {
         __os << "Expr { ";
-            _a.__add_expr_->log(__os);
+            _a.__lor_expr_->log(__os);
         __os << " }";
         return __os;
     }
@@ -242,9 +248,9 @@ __override_ast_tid__
 class UnaryOpAST : public BaseAST {
 public:
     char __operator_;
-    #define __UnaOp_Plus 0 // +
+    #define __UnaOp_Plus 0  // +
     #define __UnaOp_Minus 1 // -
-    #define __UnaOp_Not 2 // !
+    #define __UnaOp_Not 2   // !
     explicit UnaryOpAST(int __opt_) 
         noexcept {
             switch (__opt_)
@@ -292,7 +298,7 @@ public:
 
     __FRIEND_OS_OPT__(MulExpAST, _a)
     {
-        __os << "MulExpAST { ";
+        __os << "MulExp { ";
         switch (_a.__sub_expr_type_)
         {
         case __MulExpr_Una:
@@ -355,10 +361,10 @@ __override_ast_tid__
 class BinOpAST : public BaseAST {
 public:
     char __operator_;
-    #define __BinOp_Mul 0 // *
-    #define __BinOp_Div 1 // /
-    #define __BinOp_Mod 2 // %
-    #define __BinOp_Plus 3 // +
+    #define __BinOp_Mul 0   // *
+    #define __BinOp_Div 1   // /
+    #define __BinOp_Mod 2   // %
+    #define __BinOp_Plus 3  // +
     #define __BinOp_Minus 4 // -
 
     explicit BinOpAST(int __opt_) 
@@ -389,7 +395,7 @@ public:
         bop,                    // __class_alias__
         BinOpAST,             // __class__
         _a,                     // __var_id__
-        __os << "BinOpAST { "    // __os_actions__ 
+        __os << "BinOp { "    // __os_actions__ 
             << _a.__operator_   // ```
             << " }";,            // ```
         /* __is_actions__  */,  
@@ -398,6 +404,213 @@ public:
 
 __decl_ast_tid__;
 __override_ast_tid__    
+};
+
+class RelExpAST : public BaseAST {
+public:
+    #define __RelExpr_Add 0
+    ast_uptr __add_expr_;
+    #define __RelExpr_Rel 1
+    ast_uptr __rel_expr_;
+    ast_uptr __cmp_op_;
+    // ast_uptr __add_expr_;
+
+    // __RelExpr_Add | __RelExpr_Rel
+    int __sub_expr_type_;
+
+    __FRIEND_OS_OPT__(RelExpAST, _a)
+    {
+        __os << "RelExpr { ";
+        switch (_a.__sub_expr_type_)
+        {
+        case __RelExpr_Add:
+            _a.__add_expr_->log(__os);
+            break;
+        case __RelExpr_Rel:
+            _a.__rel_expr_->log(__os);
+            _a.__cmp_op_->log(__os);
+            _a.__add_expr_->log(__os);
+            break;
+        default:
+            break;
+        }
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__  
+};
+
+class EqExpAST : public BaseAST {
+public:
+    #define __EqExpr_Rel 0
+    ast_uptr __rel_expr_;
+    #define __EqExpr_Eq 1
+    ast_uptr __eq_expr_;
+    ast_uptr __cmp_op_;
+    // ast_uptr __rel_expr_;
+
+    // __EqExpr_Rel | __EqExpr_Eq
+    int __sub_expr_type_;
+
+    __FRIEND_OS_OPT__(EqExpAST, _a)
+    {
+        __os << "EqExpr { ";
+        switch (_a.__sub_expr_type_)
+        {
+        case __EqExpr_Rel:
+            _a.__rel_expr_->log(__os);
+            break;
+        case __EqExpr_Eq:
+            _a.__eq_expr_->log(__os);
+            _a.__cmp_op_->log(__os);
+            _a.__rel_expr_->log(__os);
+            break;
+        default:
+            break;
+        }
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__  
+};
+
+class CmpOpAST : public BaseAST {
+public:
+    // std::string __operator_;
+    str_uptr __operator_;
+    #define __CmpOp_Lt 0 // <
+    #define __CmpOp_Gt 1 // >
+    #define __CmpOp_Le 2 // <=
+    #define __CmpOp_Ge 3 // >=
+    #define __CmpOp_Eq 4 // ==
+    #define __CmpOp_Ne 5 // !=
+
+    explicit CmpOpAST(std::string * _str_ptr)  
+        noexcept {
+            this->__operator_ = str_uptr(_str_ptr);
+        }
+
+    // explicit CmpOpAST(int __opt_) 
+    //     noexcept {
+    //         switch (__opt_)
+    //         {
+    //         case __CmpOp_Lt:
+    //             this->__operator_ = "<";
+    //             break;
+    //         case __CmpOp_Gt:
+    //             this->__operator_ = ">";
+    //             break;
+    //         case __CmpOp_Le:
+    //             this->__operator_ = "<=";
+    //             break;
+    //         case __CmpOp_Ge:
+    //             this->__operator_ = ">=";
+    //             break;
+    //         case __CmpOp_Eq:
+    //             this->__operator_ = "==";
+    //             break;
+    //         case __CmpOp_Ne:
+    //             this->__operator_ = "!=";
+    //             break;
+    //         default:
+    //             break;
+    //         }
+    //     }
+
+    __DEF_CLASS_FULL__(
+        cop,                    // __class_alias__
+        CmpOpAST,             // __class__
+        _a,                     // __var_id__
+        __os << "CmpOp { "    // __os_actions__ 
+            << *_a.__operator_   // ```
+            << " }";,            // ```
+        /* __is_actions__  */,  
+        /* __assign_actions__ */ 
+    )
+
+
+__decl_ast_tid__;
+__override_ast_tid__  
+};
+
+class LAndExpAST : public BaseAST {
+public:
+    #define __LAndExpr_Eq 0
+    ast_uptr __eq_expr_;
+    #define __LAndExpr_LAnd 1
+    ast_uptr __land_expr_;
+    str_uptr __operator_;
+    // ast_uptr __eq_expr_;
+
+    // __LAndExpr_Eq | __LAndExpr_LAnd
+    int __sub_expr_type_;
+
+    __FRIEND_OS_OPT__(LAndExpAST, _a)
+    {
+        __os << "LAndExpr { ";
+        switch (_a.__sub_expr_type_)
+        {
+        case __AddExpr_Mul:
+            _a.__eq_expr_->log(__os);
+            break;
+        case __AddExpr_Add:
+            _a.__land_expr_->log(__os);
+            __os << " " << *_a.__operator_ << " ";
+            _a.__eq_expr_->log(__os);
+            break;
+        default:
+            break;
+        }
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__  
+};
+
+class LOrExpAST : public BaseAST {
+public:
+    #define __LOrExpr_LAnd 0
+    ast_uptr __land_expr_;
+    #define __LOrExpr_LOr 1
+    ast_uptr __lor_expr_;
+    str_uptr __operator_;
+    // ast_uptr __land_expr_;
+
+    // __LOrExpr_LAnd | __LOrExpr_LOr
+    int __sub_expr_type_;
+
+    __FRIEND_OS_OPT__(LOrExpAST, _a)
+    {
+        __os << "LOrExpr { ";
+        switch (_a.__sub_expr_type_)
+        {
+        case __LOrExpr_LAnd:
+            _a.__land_expr_->log(__os);
+            break;
+        case __LOrExpr_LOr:
+            _a.__lor_expr_->log(__os);
+            __os << " " << *_a.__operator_ << " ";
+            _a.__land_expr_->log(__os);
+            break;
+        default:
+            break;
+        }
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__  
 };
 
 #endif 

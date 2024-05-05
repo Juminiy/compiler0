@@ -134,12 +134,17 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
     std::unique_ptr<MulExpAST> mulExpr;
     std::unique_ptr<AddExpAST> addExpr;
     std::unique_ptr<BinOpAST> binOp;
+    std::unique_ptr<RelExpAST> relExpr;
+    std::unique_ptr<EqExpAST> eqExpr;
+    std::unique_ptr<CmpOpAST> cmpOp;
+    std::unique_ptr<LAndExpAST> landExpr;
+    std::unique_ptr<LOrExpAST> lorExpr;
 
     switch (_expr->tid())
     {
     case EXPR_AST:
         expr = Alan::static_uptr_cast<ExprAST, BaseAST>(_expr);
-        traverseExpr(std::move(expr->__add_expr_));
+        traverseExpr(std::move(expr->__lor_expr_));
         break;
     case PRIMARY_EXPR_AST:
         priExpr = Alan::static_uptr_cast<PrimaryExprAST, BaseAST>(_expr);
@@ -149,11 +154,11 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
             traverseExpr(std::move(priExpr->__expr_));
             break;
         case __PriExpr_Num:
-            __tmp_opd_stk_.push(__Unary_Lval);
+            // __tmp_opd_stk_.push(__Unary_Lval);
             traverseExpr(std::move(priExpr->__number_));
             break;
-        default:
-            assert(0);
+        // default:
+        //     assert(0);
         }
         break;
     case NUMBER_AST:
@@ -168,16 +173,17 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
             traverseExpr(std::move(unaryExpr->__primary_expr_));
             break;
         case __UnaExpr_Una:
+            __tmp_opd_stk_.push(__Unary_Lval);
             traverseExpr(std::move(unaryExpr->__unary_op_));
             traverseExpr(std::move(unaryExpr->__unary_expr_));
             break;
-        default:
-            assert(0);
+        // default:
+        //     assert(0);
         }
         break;
     case UNARY_OP_AST:
         unaryOp = Alan::static_uptr_cast<UnaryOpAST, BaseAST>(_expr);
-        __tmp_opt_stk_.push(unaryOp->__operator_);
+        __tmp_opt_stk_.push(std::string(1, unaryOp->__operator_));
         break;
     case MUL_EXPR_AST:
         mulExpr = Alan::static_uptr_cast<MulExpAST, BaseAST>(_expr);
@@ -191,8 +197,8 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
             traverseExpr(std::move(mulExpr->__bin_op_));
             traverseExpr(std::move(mulExpr->__unary_expr_));
             break;
-        default:
-            assert(0);
+        // default:
+        //     assert(0);
         }
         break;
     case ADD_EXPR_AST:
@@ -207,16 +213,84 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
             traverseExpr(std::move(addExpr->__bin_op_));
             traverseExpr(std::move(addExpr->__mul_expr_));
             break;
-        default:
-            assert(0);
+        // default:
+        //     assert(0);
         }
         break;
     case BINARY_OP_AST:
         binOp = Alan::static_uptr_cast<BinOpAST, BaseAST>(_expr);
-        __tmp_opt_stk_.push(binOp->__operator_);
+        __tmp_opt_stk_.push(std::string(1, binOp->__operator_));
         break;
-    default:
-        assert(0);
+    case REL_EXPR_AST:
+        relExpr = Alan::static_uptr_cast<RelExpAST, BaseAST>(_expr);
+        switch (relExpr->__sub_expr_type_)
+        {
+        case __RelExpr_Add:
+            traverseExpr(std::move(relExpr->__add_expr_));
+            break;
+        case __RelExpr_Rel:
+            traverseExpr(std::move(relExpr->__rel_expr_));
+            traverseExpr(std::move(relExpr->__cmp_op_));
+            traverseExpr(std::move(relExpr->__add_expr_));
+            break;
+        // default:
+        //     assert(0);
+        }
+        break;
+    case EQ_EXPR_AST:
+        eqExpr = Alan::static_uptr_cast<EqExpAST, BaseAST>(_expr);
+        switch (eqExpr->__sub_expr_type_)
+        {
+        case __EqExpr_Rel:
+            traverseExpr(std::move(eqExpr->__rel_expr_));
+            break;
+        case __EqExpr_Eq:
+            traverseExpr(std::move(eqExpr->__eq_expr_));
+            traverseExpr(std::move(eqExpr->__cmp_op_));
+            traverseExpr(std::move(eqExpr->__rel_expr_));
+            break;
+        // default:
+        //     assert(0);
+        }
+        break;
+    case CMP_OP_AST:
+        cmpOp = Alan::static_uptr_cast<CmpOpAST, BaseAST>(_expr);
+        __tmp_opt_stk_.push(*cmpOp->__operator_);
+        break;
+    case LAND_EXPR_AST:
+        landExpr = Alan::static_uptr_cast<LAndExpAST, BaseAST>(_expr);
+        switch (landExpr->__sub_expr_type_)
+        {
+        case __LAndExpr_Eq:
+            traverseExpr(std::move(landExpr->__eq_expr_));
+            break;
+        case  __LAndExpr_LAnd:
+            traverseExpr(std::move(landExpr->__land_expr_));
+            __tmp_opt_stk_.push("&&");
+            traverseExpr(std::move(landExpr->__eq_expr_));
+            break;
+        // default:
+        //     assert(0);
+        }
+        break;
+    case LOR_EXPR_AST:
+        lorExpr = Alan::static_uptr_cast<LOrExpAST, BaseAST>(_expr);
+        switch (lorExpr->__sub_expr_type_)
+        {
+        case __LOrExpr_LAnd:
+            traverseExpr(std::move(lorExpr->__land_expr_));
+            break;
+        case  __LOrExpr_LOr:
+            traverseExpr(std::move(lorExpr->__lor_expr_));
+            __tmp_opt_stk_.push("||");
+            traverseExpr(std::move(lorExpr->__land_expr_));
+            break;
+        // default:
+        //     assert(0);
+        }
+        break;
+    // default:
+    //     assert(0);
     }
 
 }

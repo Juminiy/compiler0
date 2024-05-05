@@ -42,11 +42,13 @@ using namespace std;
 %token INT RETURN
 %token <str_val> IDENT
 %token <int_val> INT_CONST
+%token <str_val> OPT
 
 // 非终结符
 %type <ast_val> CompUnit FuncDef FuncType Block Stmt 
 %type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
-%type <ast_val> MulExp AddExp BinOp
+%type <ast_val> MulExp AddExp BinOp 
+%type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
 
 %%
 
@@ -94,10 +96,9 @@ Stmt
   ;
 
 Exp
-  // : LOrExp {
-  : AddExp {
+  : LOrExp {
     auto expr = make_unique<ExprAST>();
-    expr->__add_expr_ = unique_ptr<BaseAST>($AddExp);
+    expr->__lor_expr_ = unique_ptr<BaseAST>($1);
     $$ = expr.release();
     }
   ;
@@ -189,29 +190,87 @@ BinOp
     | '-' { $$ = make_unique<BinOpAST>(__BinOp_Minus).release(); }
   ;
 
-// RelExp
-//   : AddExp | RelExp ('<' | '>' | "<=" | ">=") AddExp {
+RelExp
+  : AddExp {
+      auto rel_expr = make_unique<RelExpAST>();
+      rel_expr->__add_expr_ = unique_ptr<BaseAST>($1);
+      rel_expr->__sub_expr_type_ = __RelExpr_Add;
+      $$ = rel_expr.release();
+    } 
+    | RelExp CmpOp AddExp {
+      auto rel_expr = make_unique<RelExpAST>();
+      rel_expr->__rel_expr_ = unique_ptr<BaseAST>($1);
+      rel_expr->__cmp_op_ = unique_ptr<BaseAST>($2);
+      rel_expr->__add_expr_ = unique_ptr<BaseAST>($3);
+      rel_expr->__sub_expr_type_ = __RelExpr_Rel;
+      $$ = rel_expr.release();
+    }
+  ;
 
-//   }
-//   ;
+EqExp 
+  : RelExp {
+      auto eq_expr = make_unique<EqExpAST>();
+      eq_expr->__rel_expr_ = unique_ptr<BaseAST>($1);
+      eq_expr->__sub_expr_type_ = __EqExpr_Rel;
+      $$ = eq_expr.release();
+    }
+    | EqExp CmpOp RelExp {
+      auto eq_expr = make_unique<EqExpAST>();
+      eq_expr->__eq_expr_ = unique_ptr<BaseAST>($1);
+      eq_expr->__cmp_op_ = unique_ptr<BaseAST>($2);
+      eq_expr->__rel_expr_ = unique_ptr<BaseAST>($3);
+      eq_expr->__sub_expr_type_ = __EqExpr_Eq;
+      $$ = eq_expr.release();
+    }
+  ;
 
-// EqExp 
-//   : RelExp | EqExp ("==" | "!=") RelExp {
+CmpOp
+  : OPT {
+    auto cmp_op = make_unique<CmpOpAST>($1);
+    // cmp_op->__operator_ = std::unique_ptr<std::string>($1);
+    $$ = cmp_op.release();
+  }
+  // : "<" { $$ = make_unique<CmpOpAST>(__CmpOp_Lt).release(); }
+  //   | ">" { $$ = make_unique<CmpOpAST>(__CmpOp_Gt).release(); }
+  //   | "<=" { $$ = make_unique<CmpOpAST>(__CmpOp_Le).release(); }
+  //   | ">=" { $$ = make_unique<CmpOpAST>(__CmpOp_Ge).release(); }
+  //   | "==" { $$ = make_unique<CmpOpAST>(__CmpOp_Eq).release(); }
+  //   | "!=" { $$ = make_unique<CmpOpAST>(__CmpOp_Ne).release(); }
+  ;
 
-//   }
-//   ;
+LAndExp 
+  : EqExp {
+      auto land_expr = make_unique<LAndExpAST>();
+      land_expr->__eq_expr_ = unique_ptr<BaseAST>($1);
+      land_expr->__sub_expr_type_ = __LAndExpr_Eq;
+      $$ = land_expr.release();
+    } 
+    | LAndExp OPT EqExp {
+      auto land_expr = make_unique<LAndExpAST>();
+      land_expr->__land_expr_ = unique_ptr<BaseAST>($1);
+      land_expr->__operator_ = unique_ptr<std::string>($2);
+      land_expr->__eq_expr_ = unique_ptr<BaseAST>($3);
+      land_expr->__sub_expr_type_ = __LAndExpr_LAnd;
+      $$ = land_expr.release();
+    }
+  ;
 
-// LAndExp 
-//   : EqExp | LAndExp "&&" EqExp {
-
-//   }
-//   ;
-
-// LOrExp 
-//   : LAndExp | LOrExp "||" LAndExp {
-
-//   }
-//   ;
+LOrExp 
+  : LAndExp {
+      auto lor_expr = make_unique<LOrExpAST>();
+      lor_expr->__land_expr_ = unique_ptr<BaseAST>($1);
+      lor_expr->__sub_expr_type_ = __LOrExpr_LAnd;
+      $$ = lor_expr.release();
+    }
+    | LOrExp OPT LAndExp {
+      auto lor_expr = make_unique<LOrExpAST>();
+      lor_expr->__lor_expr_ = unique_ptr<BaseAST>($1);
+      lor_expr->__operator_ = unique_ptr<std::string>($2);
+      lor_expr->__land_expr_ = unique_ptr<BaseAST>($3);
+      lor_expr->__sub_expr_type_ = __LOrExpr_LAnd;
+      $$ = lor_expr.release();
+    }
+  ;
 
 %%
 
