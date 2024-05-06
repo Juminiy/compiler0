@@ -37,8 +37,7 @@ class ValueIR : public BaseIR
 public:
     explicit ValueIR(const std::string & _val,
                     IRKind _kind = KOOPA_RVT_UNDEF)
-        : __val_(std::make_unique<std::string>
-                            (std::move(_val))),
+        : __val_(__make_str_(std::move(_val))),
             __kind_(_kind) 
         { }
     
@@ -169,6 +168,7 @@ public:
                 __debug_stack_(__tmp_opd_stk_);
             #endif 
 
+            // RPN expression algorithm:
             while(!__tmp_opt_stk_.empty() &&
                     __tmp_opd_stk_.size() >= 2)
                 {

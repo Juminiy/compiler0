@@ -31,10 +31,11 @@ Octal         0[0-7]*
 Hexadecimal   0[xX][0-9a-fA-F]+
 
 /* 运算符 */
-Operator      (!=)|(!)|(==)|(>)|(<)|(>=)|(<=)|(\+)|(\-)|(\*)|(\/)|(%)|(&&)|(\|\|)|(^)|(<<)|(>>)
+Operator      (!=)|(!)|(={2})|(>)|(<)|(>=)|(<=)|(\+)|(\-)|(\*)|(\/)|(%)|(&{2})|(\|{2})|(\^)|(<{2})|(>{2})
 
 /* 括号 */
-Bracket       \(|\)|\[\]|\{\}
+/* Bracket       \(|\)|\[|\]|\{|\} */
+/* {Bracket}       { return yytext[0]; } */
 
 %%
 
@@ -52,8 +53,6 @@ Bracket       \(|\)|\[\]|\{\}
 {Hexadecimal}   { yylval.int_val = strtol(yytext, nullptr, 0); return INT_CONST; }
 
 {Operator}      { yylval.str_val = new string(yytext); return OPT; }
-
-{Bracket}       {  }
 
 .               { return yytext[0]; }
 

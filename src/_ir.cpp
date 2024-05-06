@@ -183,7 +183,7 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
         break;
     case UNARY_OP_AST:
         unaryOp = Alan::static_uptr_cast<UnaryOpAST, BaseAST>(_expr);
-        __tmp_opt_stk_.push(std::string(1, unaryOp->__operator_));
+        __tmp_opt_stk_.push(*unaryOp->__operator_);
         break;
     case MUL_EXPR_AST:
         mulExpr = Alan::static_uptr_cast<MulExpAST, BaseAST>(_expr);
@@ -219,7 +219,7 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
         break;
     case BINARY_OP_AST:
         binOp = Alan::static_uptr_cast<BinOpAST, BaseAST>(_expr);
-        __tmp_opt_stk_.push(std::string(1, binOp->__operator_));
+        __tmp_opt_stk_.push(*binOp->__operator_);
         break;
     case REL_EXPR_AST:
         relExpr = Alan::static_uptr_cast<RelExpAST, BaseAST>(_expr);

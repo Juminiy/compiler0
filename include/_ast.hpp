@@ -41,7 +41,9 @@ class BaseAST {
   virtual size_t tid() const = 0;
 };
 
+#define __make_ast_(__construct_param_) std::make_unique<BaseAST>(__construct_param_)
 using ast_uptr = std::unique_ptr<BaseAST>;
+#define __make_str_(__str_val_) std::make_unique<std::string>(__str_val_)
 using str_uptr = std::unique_ptr<std::string>;
 
 class CompUnitAST : public BaseAST {
@@ -247,38 +249,48 @@ __override_ast_tid__
 
 class UnaryOpAST : public BaseAST {
 public:
-    char __operator_;
+    // char __operator_;
+    str_uptr __operator_;
     #define __UnaOp_Plus 0  // +
     #define __UnaOp_Minus 1 // -
     #define __UnaOp_Not 2   // !
-    explicit UnaryOpAST(int __opt_) 
-        noexcept {
-            switch (__opt_)
-            {
-            case __UnaOp_Plus:
-                this->__operator_ = '+';
-                break;
-            case __UnaOp_Minus:
-                this->__operator_ = '-';
-                break;
-            case __UnaOp_Not:
-                this->__operator_ = '!';
-                break;
-            default:
-                break;
-            }
-        }
 
-    __DEF_CLASS_FULL__(
-        uop,                    // __class_alias__
-        UnaryOpAST,             // __class__
-        _a,                     // __var_id__
-        __os << "UnaryOp { "    // __os_actions__ 
-            << _a.__operator_   // ```
-            << " }";,            // ```
-        /* __is_actions__  */,  
-        /* __assign_actions__ */ 
-    )
+    // explicit UnaryOpAST(int __opt_) 
+    //     noexcept {
+    //         switch (__opt_)
+    //         {
+    //         case __UnaOp_Plus:
+    //             this->__operator_ = '+';
+    //             break;
+    //         case __UnaOp_Minus:
+    //             this->__operator_ = '-';
+    //             break;
+    //         case __UnaOp_Not:
+    //             this->__operator_ = '!';
+    //             break;
+    //         default:
+    //             break;
+    //         }
+    //     }
+
+    // __DEF_CLASS_FULL__(
+    //     uop,                    // __class_alias__
+    //     UnaryOpAST,             // __class__
+    //     _a,                     // __var_id__
+    //     __os << "UnaryOp { "    // __os_actions__ 
+    //         << _a.__operator_   // ```
+    //         << " }";,            // ```
+    //     /* __is_actions__  */,  
+    //     /* __assign_actions__ */ 
+    // )
+    __FRIEND_OS_OPT__(UnaryOpAST, _a)
+    {
+        __os << "UnaryOp { "    
+            << *_a.__operator_   
+            << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 __decl_ast_tid__;
 __override_ast_tid__
@@ -360,47 +372,57 @@ __override_ast_tid__
 
 class BinOpAST : public BaseAST {
 public:
-    char __operator_;
+    // char __operator_;
+    str_uptr __operator_;
     #define __BinOp_Mul 0   // *
     #define __BinOp_Div 1   // /
     #define __BinOp_Mod 2   // %
     #define __BinOp_Plus 3  // +
     #define __BinOp_Minus 4 // -
 
-    explicit BinOpAST(int __opt_) 
-        noexcept {
-            switch (__opt_)
-            {
-            case __BinOp_Mul:
-                this->__operator_ = '*';
-                break;
-            case __BinOp_Div:
-                this->__operator_ = '/';
-                break;
-            case __BinOp_Mod:
-                this->__operator_ = '%';
-                break;
-            case __BinOp_Plus:
-                this->__operator_ = '+';
-                break;
-            case __BinOp_Minus:
-                this->__operator_ = '/';
-                break;
-            default:
-                break;
-            }
-        }
+    // explicit BinOpAST(int __opt_) 
+    //     noexcept {
+    //         switch (__opt_)
+    //         {
+    //         case __BinOp_Mul:
+    //             this->__operator_ = '*';
+    //             break;
+    //         case __BinOp_Div:
+    //             this->__operator_ = '/';
+    //             break;
+    //         case __BinOp_Mod:
+    //             this->__operator_ = '%';
+    //             break;
+    //         case __BinOp_Plus:
+    //             this->__operator_ = '+';
+    //             break;
+    //         case __BinOp_Minus:
+    //             this->__operator_ = '/';
+    //             break;
+    //         default:
+    //             break;
+    //         }
+    //     }
 
-    __DEF_CLASS_FULL__(
-        bop,                    // __class_alias__
-        BinOpAST,             // __class__
-        _a,                     // __var_id__
-        __os << "BinOp { "    // __os_actions__ 
-            << _a.__operator_   // ```
-            << " }";,            // ```
-        /* __is_actions__  */,  
-        /* __assign_actions__ */ 
-    )
+    // __DEF_CLASS_FULL__(
+    //     bop,                    // __class_alias__
+    //     BinOpAST,             // __class__
+    //     _a,                     // __var_id__
+    //     __os << "BinOp { "    // __os_actions__ 
+    //         << _a.__operator_   // ```
+    //         << " }";,            // ```
+    //     /* __is_actions__  */,  
+    //     /* __assign_actions__ */ 
+    // )
+
+    __FRIEND_OS_OPT__(BinOpAST, _a)
+    {
+        __os << "BinOp { "    
+            << *_a.__operator_   
+            << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 __decl_ast_tid__;
 __override_ast_tid__    
@@ -491,10 +513,10 @@ public:
     #define __CmpOp_Eq 4 // ==
     #define __CmpOp_Ne 5 // !=
 
-    explicit CmpOpAST(std::string * _str_ptr)  
-        noexcept {
-            this->__operator_ = str_uptr(_str_ptr);
-        }
+    // explicit CmpOpAST(std::string * _str_ptr)  
+    //     noexcept {
+    //         this->__operator_ = str_uptr(_str_ptr);
+    //     }
 
     // explicit CmpOpAST(int __opt_) 
     //     noexcept {
@@ -523,16 +545,24 @@ public:
     //         }
     //     }
 
-    __DEF_CLASS_FULL__(
-        cop,                    // __class_alias__
-        CmpOpAST,             // __class__
-        _a,                     // __var_id__
-        __os << "CmpOp { "    // __os_actions__ 
-            << *_a.__operator_   // ```
-            << " }";,            // ```
-        /* __is_actions__  */,  
-        /* __assign_actions__ */ 
-    )
+    // __DEF_CLASS_FULL__(
+    //     cop,                    // __class_alias__
+    //     CmpOpAST,             // __class__
+    //     _a,                     // __var_id__
+    //     __os << "CmpOp { "    // __os_actions__ 
+    //         << *_a.__operator_   // ```
+    //         << " }";,            // ```
+    //     /* __is_actions__  */,  
+    //     /* __assign_actions__ */ 
+    // )
+    __FRIEND_OS_OPT__(CmpOpAST, _a)
+    {
+        __os << "CmpOp { "    
+            << *_a.__operator_   
+            << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
 
 
 __decl_ast_tid__;
@@ -545,7 +575,7 @@ public:
     ast_uptr __eq_expr_;
     #define __LAndExpr_LAnd 1
     ast_uptr __land_expr_;
-    str_uptr __operator_;
+    str_uptr __operator_; // -> &&
     // ast_uptr __eq_expr_;
 
     // __LAndExpr_Eq | __LAndExpr_LAnd
@@ -582,7 +612,7 @@ public:
     ast_uptr __land_expr_;
     #define __LOrExpr_LOr 1
     ast_uptr __lor_expr_;
-    str_uptr __operator_;
+    str_uptr __operator_; // -> ||
     // ast_uptr __land_expr_;
 
     // __LOrExpr_LAnd | __LOrExpr_LOr
