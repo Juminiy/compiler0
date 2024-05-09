@@ -53,6 +53,9 @@
         "iterator": "cpp",
         "memory": "cpp",
         "deque": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "__tree": "cpp",
+        "map": "cpp",
+        "cassert": "cpp"
     }
 }

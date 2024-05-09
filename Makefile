@@ -70,7 +70,7 @@ $(BUILD_DIR)/$(TARGET_EXEC): $(FB_SRCS) $(OBJS)
 # C source
 define c_recipe
 	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ # -DDEBUG=$(DEBUG)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@ #-DDEBUG=$(DEBUG)
 endef
 $(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c; $(c_recipe)
 $(BUILD_DIR)/%.c.o: $(BUILD_DIR)/%.c; $(c_recipe)
@@ -78,7 +78,7 @@ $(BUILD_DIR)/%.c.o: $(BUILD_DIR)/%.c; $(c_recipe)
 # C++ source
 define cxx_recipe
 	mkdir -p $(dir $@)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@ # -DDEBUG=$(DEBUG)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@ #-DDEBUG=$(DEBUG)
 endef
 $(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp; $(cxx_recipe)
 $(BUILD_DIR)/%.cpp.o: $(BUILD_DIR)/%.cpp; $(cxx_recipe)

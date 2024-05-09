@@ -1,0 +1,26 @@
+/usr/bin/ld: /root/compiler/build/_ir.cpp.o: 
+in function `Alan::BasicBlockIR::__is_opt_(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)':
+/root/compiler/src/_ir.cpp:(.text._ZN4Alan12BasicBlockIR9__is_opt_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE[_ZN4Alan12BasicBlockIR9__is_opt_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE]+0x14): 
+
+undefined reference to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]'
+
+/usr/bin/ld: /root/compiler/src/_ir.cpp:
+(.text._ZN4Alan12BasicBlockIR9__is_opt_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE[_ZN4Alan12BasicBlockIR9__is_opt_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE]+0x18): 
+undefined reference to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]'
+
+/usr/bin/ld: /root/compiler/build/_ir.cpp.o: in function 
+`Alan::BasicBlockIR::__opt_less_(std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)':
+
+/root/compiler/src/_ir.cpp:(.text._ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_[_ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_]+0xa4): 
+undefined reference to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]'
+
+/usr/bin/ld: /root/compiler/src/_ir.cpp:(.text._ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_[_ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_]+0xa8): 
+undefined reference to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]'
+
+/usr/bin/ld: /root/compiler/src/_ir.cpp:(.text._ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_[_ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_]+0x10c): 
+undefined reference to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]'
+
+/usr/bin/ld: /root/compiler/build/_ir.cpp.o:/root/compiler/src/_ir.cpp:(.text._ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_[_ZN4Alan12BasicBlockIR11__opt_less_ERKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES8_]+0x110): 
+more undefined references to `Alan::BasicBlockIR::__opt_priority_[abi:cxx11]' follow
+
+clang: error: linker command failed with exit code 1 (use -v to see invocation)

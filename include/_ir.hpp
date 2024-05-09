@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <utility>
 #include <stack>
+#include <unordered_map>
 
 #include <cctype>
 #include <cassert>
@@ -69,121 +70,59 @@ public:
 class BasicBlockIR : public BaseIR
 {
 public:
-    /* reference from: https://pku-minic.github.io/online-doc/#/misc-app-ref/koopa
-    ne, eq, gt, lt, ge, le, add, sub, mul, div, mod, and, or, xor, shl, shr, sar.
-    */
-    __CLASS_GLB_FN__ 
-    std::string __conv_keyword_(const std::string &_keyword)
-    {
-        if (_keyword == "return") return std::string("ret");
-        else if(_keyword == "!=") return "ne";
-        else if (_keyword == "!" || _keyword == "==") return "eq";
-        else if(_keyword == ">") return "gt";
-        else if(_keyword == "<") return "lt";
-        else if(_keyword == ">=") return "ge";
-        else if(_keyword == "<=") return "le";
-        else if (_keyword == "+") return "add";
-        else if (_keyword == "-") return "sub";
-        else if (_keyword == "*") return "mul";
-        else if (_keyword == "/") return "div";
-        else if (_keyword == "%") return "mod"; // rem in riscv-i64
-        else if(_keyword == "&&") return "and";
-        else if(_keyword == "||") return "or";
-        else if(_keyword == "^") return "xor";
-        else if(_keyword == "<<") return "shl"; // shift left
-        else if (_keyword == ">>") return "shr"; // shift right
-        else if (_keyword == ">>?") return "sar"; // shift arithmetic right
-        else return "__nani?__";
-    }   
-
-    __CLASS_GLB_FN__ 
-    std::string _make_tmp(int _id, const std::string &_prf = "%")
-    {
-        return _prf + std::to_string(_id);
-    }
     __CLASS_UNIQUE__ std::string __unkown_tmp_id_;
     __CLASS_UNIQUE__ std::string __named_id_prefix_;
     __CLASS_UNIQUE__ std::string __unamed_id_prefix_;
+
+    __CLASS_GLB_VA__ std::unordered_map<std::string, int> __opt_priority_;
+
 public:
-    int __tmp_id_;  // tmp assigned val
-    std::stack<std::string> __tmp_opd_stk_; // operand
-    std::stack<std::string> __tmp_opt_stk_; // operator
+    __CLASS_GLB_FN__ 
+    std::string __conv_keyword_(const std::string &);
+
+    __CLASS_GLB_FN__ 
+    std::string _make_tmp(int , const std::string & = "%");
+
+    __CLASS_GLB_FN__ 
+    bool __is_int_(const std::string &);
+
+    __CLASS_GLB_FN__
+    bool __is_opt_(const std::string &);
+
+    __CLASS_GLB_FN__
+    void __init_opt_priority_();
+
+    __CLASS_GLB_FN__
+    bool __opt_less_(const std::string & ,const std::string & );
+
+    __CLASS_GLB_FN__
+    bool __is_const_expr_(const std::string &);
+
+    __CLASS_GLB_FN__
+    int __i32_opt_res_(int, std::string, int);
+
+public:
+    std::deque<std::string> __mid_op_stk_; // 
+    std::deque<std::string> __rpn_op_stk_; // operand and operator of RPN 
+    std::deque<std::string> __tmp_opt_stk_; // tmp operator
     // std::stack<std::string> __tmp_ass_stk_; // assign operand
-public:
-#define __bbir_ret_val 0
-#define __bbir_ass_val 1
+    int __tmp_id_;  // tmp assigned val
+    
+    #define __bbir_ret_val 0
+    #define __bbir_ass_val 1
     void __push_val_
-    (const std::vector<std::string> & _list, int _val_type = __bbir_ret_val)
-    {
-        switch (_val_type)
-        {
-        case __bbir_ret_val:
-            assert(_list.size() >= 2);
-            __instructions_.push_back(
-            std::make_unique<ValueIR>(
-                "\t" + __conv_keyword_(_list[0]) + 
-                " " + _list[1]
-                ,
-                KOOPA_RVT_INTEGER)
-            );
-            break;
-        case __bbir_ass_val:
-            assert(_list.size() >= 4);
-            __instructions_.push_back(
-                std::make_unique<ValueIR>(
-                "\t" + _list[0] + 
-                " = " + _list[1] + " " + 
-                _list[2] + ", " +
-                _list[3]
-                ,
-                KOOPA_RVT_INTEGER)
-            );
-            break;
-        default:
-            assert(0);
-        }
-               
-    }
-#define __Unary_Lval "0"
-public:
+    (const std::vector<std::string> & , int = __bbir_ret_val);
+
+    #define __Unary_Lval "0"
+    // mid order traverse
     void traverseExpr(ast_uptr _expr);
+    // mid expr to RPN
+    void midExpr2RPN();
+    // eval PRN to optimize
+    void evalRPN();
+
 public:
-    explicit BasicBlockIR(BlockAST & _bast)
-        : __block_ast_(std::make_unique<BlockAST>
-                                    (std::move(_bast)))
-        { 
-            auto stmtPtr = Alan::static_uptr_cast<StmtAST, BaseAST>
-                            (__block_ast_->__stmt_);
-            auto exprPtr = Alan::static_uptr_cast<ExprAST, BaseAST>
-                            (stmtPtr->__expr_);
-            
-            // I wanna try to optimize
-            // start recursive
-            this->__tmp_id_ = -1;
-            
-            traverseExpr(std::move(exprPtr));
-
-            #if DEBUG == 1
-                __debug_stack_(__tmp_opt_stk_);
-                __debug_stack_(__tmp_opd_stk_);
-            #endif 
-
-            // RPN expression algorithm:
-            while(!__tmp_opt_stk_.empty() &&
-                    __tmp_opd_stk_.size() >= 2)
-                {
-                    auto _opt = __tmp_opt_stk_.top(); __tmp_opt_stk_.pop();
-                    auto _ropd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
-                    auto _lopd = __tmp_opd_stk_.top(); __tmp_opd_stk_.pop();
-                    auto _assi = _make_tmp(++__tmp_id_);
-                    // __tmp_opd_stk_.push(__Unary_Lval);
-                    __tmp_opd_stk_.push(_assi); 
-                    auto _optr = __conv_keyword_(_opt);
-                    __push_val_({_assi, _optr, _lopd, _ropd}, __bbir_ass_val);
-                }
-
-            __push_val_({*stmtPtr->__ret_, __tmp_opd_stk_.top()}, __bbir_ret_val);
-        }
+    explicit BasicBlockIR(BlockAST & _bast);
 
     __DEF_ALL__(bbir, BasicBlockIR);
 

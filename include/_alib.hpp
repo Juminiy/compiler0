@@ -243,6 +243,7 @@
 #define __CLASS_GLB_FN__ static inline
 #define __CLASS_GLB_VA__ static
 #define __CLASS_UNIQUE__ static const
+#define __FN_INLINE__ inline
 
 // Macro parse argv
 #define MODE_UNDEF -1
