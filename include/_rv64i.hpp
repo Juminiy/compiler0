@@ -32,7 +32,10 @@ public:
         case KOOPA_RVT_INTEGER:
             return std::string("li a0, ") + 
                     std::string(
-                        std::find_if(__vir_.__val_->begin(), __vir_.__val_->end(), ::isdigit), 
+                        std::find_if(__vir_.__val_->begin(), __vir_.__val_->end(), 
+                                        [](char ch) -> bool {
+                                            return ::isdigit(ch) || ch == '-';
+                                        }), 
                         __vir_.__val_->end()
                     );
 

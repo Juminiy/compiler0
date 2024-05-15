@@ -198,8 +198,8 @@ bool BasicBlockIR::__is_int_(const std::string & __number_)
     // int bin11 = 0b11; 0B11 -0b11
     auto __isbdigit = [](int __ch) -> int { return __ch == '0' || __ch == '1'; };
     auto __isodigit = [] (int __ch) -> int { return __ch >= '0' && __ch <= '7'; };
-    #define __reach_end_() \
-            if(__num_it_ == __num_end_) return false
+    #define __reach_end_(__bool_val) \
+            if(__num_it_ == __num_end_) return __bool_val
 
     typedef int (*__pred) (int);
     __pred __pred_fn;
@@ -208,19 +208,19 @@ bool BasicBlockIR::__is_int_(const std::string & __number_)
     auto __num_end_ = __number_.end();
     if(*__num_it_ == '-' || *__num_it_ == '+')
     { 
-        ++__num_it_; __reach_end_(); 
+        ++__num_it_; __reach_end_(false); // need more
     }
 
     if(*__num_it_ == '0')
     {
-        ++__num_it_; __reach_end_();
+        ++__num_it_; __reach_end_(true); // can ok
         if(*__num_it_ == 'x' || *__num_it_ == 'X')
         {   
-        ++__num_it_; __reach_end_();
+        ++__num_it_; __reach_end_(false); // need more
         __pred_fn = ::isxdigit;
         } else if (*__num_it_ == 'b' || *__num_it_ == 'B')
         {
-        ++__num_it_; __reach_end_();
+        ++__num_it_; __reach_end_(false); // need more
         __pred_fn = __isbdigit;
         } else if (__isodigit(*__num_it_))
         {
@@ -480,9 +480,11 @@ void BasicBlockIR::traverseExpr(ast_uptr _expr)
             break;
         case __UnaExpr_Una:
             // __rpn_op_stk_.push(__Unary_Lval);
+            __mid_op_stk_.push_back("(");
             __mid_op_stk_.push_back(__Unary_Lval);
             traverseExpr(std::move(unaryExpr->__unary_op_));
             traverseExpr(std::move(unaryExpr->__unary_expr_));
+            __mid_op_stk_.push_back(")");
             break;
         // default:
         //     assert(0);
@@ -656,13 +658,31 @@ void BasicBlockIR::midExpr2RPN()
 void BasicBlockIR::evalRPN()
 {   
     // const_expr
-    while(__rpn_op_stk_.size() >= 3)
+    // while(__rpn_op_stk_.size() >= 3)
+    // {
+    //     auto lval = __str2int_(__rpn_op_stk_.front()); __rpn_op_stk_.pop_front();
+    //     auto rval = __str2int_(__rpn_op_stk_.front()); __rpn_op_stk_.pop_front();
+    //     auto opt = __rpn_op_stk_.front(); __rpn_op_stk_.pop_front();
+    //     __rpn_op_stk_.push_front(__int2str_(__i32_opt_res_(lval, opt, rval)));
+    // }
+
+    std::stack<std::string> __opof;
+    for(auto token : __rpn_op_stk_)
     {
-        auto lval = __str2int_(__rpn_op_stk_.front()); __rpn_op_stk_.pop_front();
-        auto rval = __str2int_(__rpn_op_stk_.front()); __rpn_op_stk_.pop_front();
-        auto opt = __rpn_op_stk_.front(); __rpn_op_stk_.pop_front();
-        __rpn_op_stk_.push_front(__int2str_(__i32_opt_res_(lval, opt, rval)));
+        if(__is_opt_(token))
+        {
+            auto rval = __str2int_(__opof.top()); __opof.pop();
+            auto lval = __str2int_(__opof.top()); __opof.pop();
+            #if (DEBUG == 1)
+                PRINTLN(lval << " " << token << " " << rval);
+            #endif 
+            __opof.push(__int2str_(__i32_opt_res_(lval, token, rval)));
+        } else 
+        {
+            __opof.push(token);
+        }
     }
+    this->__const_expr_ = __opof.top();
 }
 
 BasicBlockIR::BasicBlockIR(BlockAST & _bast)
@@ -680,18 +700,19 @@ BasicBlockIR::BasicBlockIR(BlockAST & _bast)
     traverseExpr(std::move(exprPtr));
     
     #if (DEBUG == 1)
+        PRINT("midExpr: ");
         LogContainer(__mid_op_stk_);
     #endif 
     // convert midExpr to RPN expr
     midExpr2RPN();
     #if (DEBUG == 1)
-        LogContainer(__tmp_opt_stk_);
+        PRINT("RPNExpr: ");
         LogContainer(__rpn_op_stk_);
     #endif 
     // optimize RPN expr and push valIR
     evalRPN();
     // push return valIR
-    __push_val_({*stmtPtr->__ret_, __rpn_op_stk_.front()}, __bbir_ret_val);
+    __push_val_({*stmtPtr->__ret_, __const_expr_}, __bbir_ret_val);
 }
 
 __END_NS__

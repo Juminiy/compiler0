@@ -105,6 +105,7 @@ public:
     std::deque<std::string> __mid_op_stk_; // 
     std::deque<std::string> __rpn_op_stk_; // operand and operator of RPN 
     std::deque<std::string> __tmp_opt_stk_; // tmp operator
+    std::string __const_expr_;
     // std::stack<std::string> __tmp_ass_stk_; // assign operand
     int __tmp_id_;  // tmp assigned val
     
