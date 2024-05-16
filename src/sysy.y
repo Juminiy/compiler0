@@ -36,12 +36,16 @@ using namespace std;
 %token INT RETURN
 %token <str_val> IDENT OPT
 %token <int_val> INT_CONST
+%token <str_val> CONST 
 
 // 非终结符
 %type <ast_val> CompUnit FuncDef FuncType Block Stmt 
 %type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
 %type <ast_val> MulExp AddExp BinOp 
 %type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
+%type <ast_val> Decl ConstDecl BType ConstDef ConstInitVal
+%type <ast_val> Block BlockItem 
+%type <ast_val> LVal
 
 %%
 
@@ -72,10 +76,19 @@ FuncType
   ;
 
 Block
-  : '{' Stmt '}' {
+  : '{' BlockItem '}' {
     auto block = make_unique<BlockAST>();
     block->__stmt_ = ast_uptr($2);
     $$ = block.release();
+  }
+  ;
+
+BlockItem 
+  : Decl {
+
+  } 
+  | Stmt {
+
   }
   ;
 
@@ -109,6 +122,15 @@ PrimaryExp
       pri_expr->__sub_expr_type_ = __PriExpr_Num;
       $$ = pri_expr.release();
     }
+    | LVal {
+
+    }
+  ;
+
+LVal
+  : IDENT {
+
+  }
   ;
 
 Number
@@ -276,6 +298,43 @@ LOrExp
       $$ = lor_expr.release();
     }
   ;
+
+Decl
+  : ConstDecl {
+
+  }
+  ;
+
+ConstDecl
+  : CONST BType ConstDef {"," ConstDef} ";" {
+
+  }
+  ;
+
+BType 
+  : INT {
+
+  };
+
+ConstDef 
+  : IDENT "=" ConstInitVal {
+
+  }
+  ;
+
+ConstInitVal 
+  : ConstExp {
+
+  }
+  ;
+
+ConstExp 
+  : Exp {
+
+  }
+  ;
+
+
 
 %%
 
