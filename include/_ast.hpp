@@ -6,7 +6,11 @@
 #include <string>
 #include <iostream>
 
+#include <vector>
+#include <map>
+
 #include "_alib.hpp"
+#include "_ref.hpp"
 
 #define __decl_ast_tid__ \
         public: __CLASS_UNIQUE__ size_t __ast_tid_
@@ -33,6 +37,14 @@
 #define CMP_OP_AST 15
 #define LAND_EXPR_AST 16
 #define LOR_EXPR_AST 17
+#define BLOCK_ITEM_AST 18
+#define LVAL_AST 19
+#define DECL_AST 20
+#define CONST_DECL_AST 21
+#define BTYPE_AST 22
+#define CONST_DEF_AST 23
+#define CONST_INIT_VAL_AST 24
+#define CONST_EXPR_AST 25
 
 class BaseAST {
  public:
@@ -104,12 +116,49 @@ __override_ast_tid__
 
 class BlockAST : public BaseAST {
 public:
-    ast_uptr __stmt_;
+    ast_uptr __block_item_;
 
     __FRIEND_OS_OPT__(BlockAST, _a)
     {
         __os << "Block { ";
+            _a.__block_item_->log(__os);
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__
+};
+
+class BlockItemAST : public BaseAST {
+public:
+    #define __BlockItem_Decl 0
+    ast_uptr __decl_;
+    #define __BlockItem_Stmt 1
+    ast_uptr __stmt_;
+    #define __BlockItem_Null 2
+    // nullptr
+
+    // __BlockItem_Decl | __BlockItem_Stmt | __BlockItem_Null
+    int __sub_type_;
+
+    SymTable __sym_table;
+
+    __FRIEND_OS_OPT__(BlockItemAST, _a)
+    {
+        __os << "BlockItem { ";
+        
+        switch (_a.__sub_type_)
+        {
+        case __BlockItem_Decl:
+            _a.__decl_->log(__os);
+            break;
+        case __BlockItem_Stmt:
             _a.__stmt_->log(__os);
+            break;
+        }
+
         __os << " }";
         return __os;
     }
@@ -162,8 +211,10 @@ public:
     ast_uptr __expr_;
     #define __PriExpr_Num 1
     ast_uptr __number_;
+    #define __PriExpr_LVal 2
+    ast_uptr __lval_;
 
-    // __PriExpr_Expr | __PriExpr_Num
+    // __PriExpr_Expr | __PriExpr_Num | __PriExpr_LVal
     int __sub_expr_type_;
     
     __DEF_ALL__(pexpr, PrimaryExprAST);
@@ -181,10 +232,29 @@ public:
         case __PriExpr_Num:
             _a.__number_->log(__os);
             break;
+        case __PriExpr_LVal:
+            _a.__lval_->log(__os);
         default:
             break;
         }
         __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__
+};
+
+class LValAST : public BaseAST {
+public:
+    str_uptr __ident_;
+
+    __FRIEND_OS_OPT__(LValAST, _a)
+    {
+        __os << "LVal { "
+            << *_a.__ident_
+            << " }";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -641,6 +711,121 @@ public:
 
 __decl_ast_tid__;
 __override_ast_tid__  
+};
+
+class DeclAST : public BaseAST {
+public:
+    ast_uptr __const_decl_;
+
+    __FRIEND_OS_OPT__(DeclAST, _a)
+    {
+        __os << "Decl { ";
+            _a.__const_decl_->log(__os);
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+class ConstDeclAST : public BaseAST {
+public:
+    ast_uptr __btype_;
+    ast_uptr __const_def_;
+
+    // 0,1,2,...n
+    std::vector<ast_uptr> __const_defs_;
+
+    __FRIEND_OS_OPT__(ConstDeclAST, _a)
+    {
+        __os << "ConstDecl { ";
+            _a.__btype_->log(__os);
+            _a.__const_def_->log(__os);
+
+            for(auto & _def : _a.__const_defs_)
+            {
+                _def->log(__os);
+            }
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+class BTypeAST : public BaseAST {
+public:
+    str_uptr __type_;
+
+    __FRIEND_OS_OPT__(BTypeAST, _a)
+    {
+        __os << "BType { ";
+            __os << *_a.__type_;
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+class ConstDefAST : public BaseAST {
+public:
+    str_uptr __ident_;
+    ast_uptr __const_init_val_;
+
+    __FRIEND_OS_OPT__(ConstDefAST, _a)
+    {
+        __os << "ConstDef { ";
+        __os << *_a.__ident_ 
+            << " = ";
+        _a.__const_init_val_->log(__os);
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+class ConstInitValAST : public BaseAST {
+public:
+    ast_uptr __const_expr_;
+
+    __FRIEND_OS_OPT__(ConstInitValAST, _a)
+    {
+        __os << "ConstInitVal { ";
+            _a.__const_expr_->log(__os);
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+class ConstExpAST : public BaseAST {
+public:
+    ast_uptr __expr_;
+
+    __FRIEND_OS_OPT__(ConstExpAST, _a)
+    {
+        __os << "ConstExpr { ";
+            _a.__expr_->log(__os);
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
 };
 
 #endif 

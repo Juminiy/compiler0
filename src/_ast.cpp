@@ -19,4 +19,12 @@ __def_ast_tid__(EqExpAST, EQ_EXPR_AST);
 __def_ast_tid__(CmpOpAST, CMP_OP_AST);
 __def_ast_tid__(LAndExpAST, LAND_EXPR_AST);
 __def_ast_tid__(LOrExpAST, LOR_EXPR_AST);
+__def_ast_tid__(BlockItemAST, BLOCK_ITEM_AST);
+__def_ast_tid__(LValAST, LVAL_AST);
+__def_ast_tid__(DeclAST, DECL_AST);
+__def_ast_tid__(ConstDeclAST, CONST_DECL_AST);
+__def_ast_tid__(BTypeAST, BTYPE_AST);
+__def_ast_tid__(ConstDefAST, CONST_DEF_AST);
+__def_ast_tid__(ConstInitValAST, CONST_INIT_VAL_AST);
+__def_ast_tid__(ConstExpAST, CONST_EXPR_AST);
 

@@ -33,19 +33,17 @@ using namespace std;
 // 2. 非终结符
 
 // 终结符
-%token INT RETURN
+%token INT RETURN CONST
 %token <str_val> IDENT OPT
 %token <int_val> INT_CONST
-%token <str_val> CONST 
 
 // 非终结符
 %type <ast_val> CompUnit FuncDef FuncType Block Stmt 
 %type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
 %type <ast_val> MulExp AddExp BinOp 
 %type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
-%type <ast_val> Decl ConstDecl BType ConstDef ConstInitVal
-%type <ast_val> Block BlockItem 
-%type <ast_val> LVal
+%type <ast_val> Decl ConstDecl BType ConstDef ConstInitVal ConstExp 
+%type <ast_val> BlockItem LVal 
 
 %%
 
@@ -78,17 +76,28 @@ FuncType
 Block
   : '{' BlockItem '}' {
     auto block = make_unique<BlockAST>();
-    block->__stmt_ = ast_uptr($2);
+    block->__block_item_ = ast_uptr($2);
     $$ = block.release();
   }
   ;
 
 BlockItem 
   : Decl {
-
+    auto block_item = make_unique<BlockItemAST>();
+    block_item->__sub_type_ = __BlockItem_Decl;
+    block_item->__decl_ = ast_uptr($1);
+    $$ = block_item.release();
   } 
   | Stmt {
-
+    auto block_item = make_unique<BlockItemAST>();
+    block_item->__sub_type_ = __BlockItem_Stmt;
+    block_item->__stmt_ = ast_uptr($1);
+    $$ = block_item.release();
+  }
+  | /* empty */ {
+    auto block_item = make_unique<BlockItemAST>();
+    block_item->__sub_type_ = __BlockItem_Null;
+    $$ = block_item.release();
   }
   ;
 
@@ -123,13 +132,18 @@ PrimaryExp
       $$ = pri_expr.release();
     }
     | LVal {
-
+      auto pri_expr = make_unique<PrimaryExprAST>();
+      pri_expr->__lval_ = ast_uptr($LVal);
+      pri_expr->__sub_expr_type_ = __PriExpr_LVal;
+      $$ = pri_expr.release(); 
     }
   ;
 
 LVal
   : IDENT {
-
+    auto lval = make_unique<LValAST>();
+    lval->__ident_ = str_uptr($1);
+    $$ = lval.release(); 
   }
   ;
 
@@ -301,36 +315,51 @@ LOrExp
 
 Decl
   : ConstDecl {
-
+    auto decl = make_unique<DeclAST>();
+    decl->__const_decl_ = ast_uptr($1);
+    $$ = decl.release();
   }
   ;
 
 ConstDecl
   : CONST BType ConstDef {"," ConstDef} ";" {
-
+    auto const_decl = make_unique<ConstDeclAST>();
+    const_decl->__btype_ = ast_uptr($2);
+    const_decl->__const_def_ = ast_uptr($3);
+    // how to recursive TODO: try
+    $$ = const_decl.release();
   }
   ;
 
 BType 
   : INT {
-
+    auto btype = make_unique<BTypeAST>();
+    btype->__type_ = __make_str_("int");
+    $$ = btype.release();
   };
 
 ConstDef 
   : IDENT "=" ConstInitVal {
-
+    auto const_def = make_unique<ConstDefAST>();
+    const_def->__ident_ = str_uptr($1);
+    const_def->__const_init_val_ = ast_uptr($3);
+    $$ = const_def.release();
   }
   ;
 
 ConstInitVal 
   : ConstExp {
-
+    auto const_init_val = make_unique<ConstInitValAST>();
+    const_init_val->__const_expr_ = ast_uptr($1);
+    $$ = const_init_val.release();
   }
   ;
 
 ConstExp 
   : Exp {
-
+    auto const_expr = make_unique<ConstExpAST>();
+    const_expr->__expr_ = ast_uptr($1);
+    $$ = const_expr.release();
   }
   ;
 
