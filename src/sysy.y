@@ -10,6 +10,7 @@
 #include <string>
 
 #include "../include/_ast.hpp"
+#include "../include/_ref.hpp"
 
 int yylex();
 void yyerror(std::unique_ptr<BaseAST> &ast, const char *s);
@@ -38,12 +39,13 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符
-%type <ast_val> CompUnit FuncDef FuncType Block Stmt 
+%type <ast_val> CompUnit FuncDef FuncType Block BlockItem 
+%type <ast_val> Decl Stmt 
 %type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
 %type <ast_val> MulExp AddExp BinOp 
 %type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
-%type <ast_val> Decl ConstDecl BType ConstDef ConstInitVal ConstExp 
-%type <ast_val> BlockItem LVal 
+%type <ast_val> ConstDecl BType ConstDefs ConstDef ConstInitVal ConstExp 
+%type <ast_val> LVal 
 
 %%
 
@@ -322,11 +324,10 @@ Decl
   ;
 
 ConstDecl
-  : CONST BType ConstDef {"," ConstDef} ";" {
+  : CONST BType ConstDef ConstDefs ";" {
     auto const_decl = make_unique<ConstDeclAST>();
     const_decl->__btype_ = ast_uptr($2);
     const_decl->__const_def_ = ast_uptr($3);
-    // how to recursive TODO: try
     $$ = const_decl.release();
   }
   ;
@@ -337,6 +338,31 @@ BType
     btype->__type_ = __make_str_("int");
     $$ = btype.release();
   };
+
+ConstDefs 
+  : /* empty */ {
+    auto const_defs = make_unique<ConstDefsAST>(); 
+    const_defs->__sub_expr_type_ = __ConstDefs_Null;
+    // const_defs->__sym_table = std::make_shared<SymTable>();
+    $$ = const_defs.release();
+  }
+  | "," ConstDef ConstDefs {
+    auto const_defs = make_unique<ConstDefsAST>(); 
+    const_defs->__sub_expr_type_ = __ConstDefs_Recr;
+    const_defs->__const_def_ = ast_uptr($2);
+    const_defs->__next_ = ast_uptr($3);
+    // auto child_const_def = 
+    //   Alan::static_uptr_cast<ConstDefAST, BaseAST>($2);
+    // auto child_const_defs = 
+    //   Alan::static_uptr_cast<ConstDefsAST, BaseAST>($3);
+    // const_defs->__sym_table = child_const_defs->__sym_table;
+    // const_defs->__sym_table->Put(
+    //   child_const_def->GetIdent(),
+    //   child_const_def->GetTypeValue()
+    // );
+    $$ = const_defs.release();
+  }
+  ;
 
 ConstDef 
   : IDENT "=" ConstInitVal {

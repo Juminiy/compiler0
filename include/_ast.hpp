@@ -45,6 +45,7 @@
 #define CONST_DEF_AST 23
 #define CONST_INIT_VAL_AST 24
 #define CONST_EXPR_AST 25
+#define CONST_DEFS_AST 26
 
 class BaseAST {
  public:
@@ -114,10 +115,20 @@ __decl_ast_tid__;
 __override_ast_tid__
 };
 
+using __Sym_Table_t = std::shared_ptr<SymTable>;
+#define __decl_sym_table_of __Sym_Table_t __sym_table
+
 class BlockAST : public BaseAST {
 public:
     ast_uptr __block_item_;
 
+    __decl_sym_table_of;
+    
+    // BlockAST()
+    // {
+    //     __sym_table = std::make_shared<SymTable>();
+    // }
+    
     __FRIEND_OS_OPT__(BlockAST, _a)
     {
         __os << "Block { ";
@@ -143,7 +154,7 @@ public:
     // __BlockItem_Decl | __BlockItem_Stmt | __BlockItem_Null
     int __sub_type_;
 
-    SymTable __sym_table;
+    __decl_sym_table_of;
 
     __FRIEND_OS_OPT__(BlockItemAST, _a)
     {
@@ -717,6 +728,8 @@ class DeclAST : public BaseAST {
 public:
     ast_uptr __const_decl_;
 
+    __decl_sym_table_of;
+
     __FRIEND_OS_OPT__(DeclAST, _a)
     {
         __os << "Decl { ";
@@ -737,6 +750,7 @@ public:
 
     // 0,1,2,...n
     std::vector<ast_uptr> __const_defs_;
+    __decl_sym_table_of;
 
     __FRIEND_OS_OPT__(ConstDeclAST, _a)
     {
@@ -774,10 +788,44 @@ __decl_ast_tid__;
 __override_ast_tid__ 
 };
 
+// defs set
+class ConstDefsAST : public BaseAST {
+public:
+    #define __ConstDefs_Null 0
+    ast_uptr __const_def_;
+    #define __ConstDefs_Recr 1
+    ast_uptr __next_;
+
+    int __sub_expr_type_;
+
+    // __decl_sym_table_of;
+
+    __FRIEND_OS_OPT__(ConstDefsAST, _a)
+    {
+        __os << "ConstDefsAST { ";
+            // __os << *_a.__type_;
+        __os << " }";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__ 
+};
+
+// minimal def
 class ConstDefAST : public BaseAST {
 public:
     str_uptr __ident_;
     ast_uptr __const_init_val_;
+
+    std::string GetIdent() {
+        return *__ident_;
+    }
+
+    TypeValue GetTypeValue() {
+        return TypeValue{};
+    }
 
     __FRIEND_OS_OPT__(ConstDefAST, _a)
     {

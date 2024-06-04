@@ -71,21 +71,33 @@ class SymTable
 public:
     std::map<std::string, TypeValue> __sym_tbl_;
 
-    bool Put(std::string _sym, TypeValue & _tv) {
-        __sym_tbl_.insert(std::make_pair(
-            _sym, _tv
-        ));
-    }
-
-    bool Exist(std::string _sym) {
+    // if has, return old
+    // else, return nil
+    TypeValue Put(std::string _sym, TypeValue & _tv) {
         auto _iter = __sym_tbl_.find(_sym);
-        return _iter == __sym_tbl_.end();
+
+        if(_iter != __sym_tbl_.end()) {
+            __sym_tbl_[_sym] = _tv;
+            return _iter->second;
+        } else {
+            __sym_tbl_.insert(std::make_pair(
+                _sym, _tv
+            ));
+            return TypeValue{};
+        }
     }
 
+    // 
+    bool Exist(std::string _sym) {
+        return __sym_tbl_.find(_sym) == 
+                __sym_tbl_.end();
+    }
+
+    // 
     TypeValue Get(std::string _sym) {
-        auto iter = __sym_tbl_.find(_sym);
-        if (iter != __sym_tbl_.end()){
-            return iter->second;
+        auto _iter = __sym_tbl_.find(_sym);
+        if (_iter != __sym_tbl_.end()){
+            return _iter->second;
         }
         return TypeValue{};
     }

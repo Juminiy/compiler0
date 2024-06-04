@@ -689,8 +689,25 @@ BasicBlockIR::BasicBlockIR(BlockAST & _bast)
     : __block_ast_(std::make_unique<BlockAST>
                                 (std::move(_bast)))
 { 
-    auto stmtPtr = Alan::static_uptr_cast<StmtAST, BaseAST>
-                    (__block_ast_->__stmt_);
+    auto blockItemPtr = 
+        Alan::static_uptr_cast<BlockItemAST, BaseAST>
+            (__block_ast_->__block_item_);
+    std::unique_ptr<DeclAST> declPtr;
+    std::unique_ptr<StmtAST> stmtPtr;
+
+    switch (blockItemPtr->__sub_type_)
+    {
+    case __BlockItem_Decl:
+        declPtr = Alan::static_uptr_cast<DeclAST, BaseAST>
+                    (blockItemPtr->__decl_);
+        break;
+    
+    case __BlockItem_Stmt:
+        stmtPtr = Alan::static_uptr_cast<StmtAST, BaseAST>
+                    (blockItemPtr->__stmt_);
+        break;
+    }
+    
     auto exprPtr = Alan::static_uptr_cast<ExprAST, BaseAST>
                     (stmtPtr->__expr_);
     

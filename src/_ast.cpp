@@ -27,4 +27,5 @@ __def_ast_tid__(BTypeAST, BTYPE_AST);
 __def_ast_tid__(ConstDefAST, CONST_DEF_AST);
 __def_ast_tid__(ConstInitValAST, CONST_INIT_VAL_AST);
 __def_ast_tid__(ConstExpAST, CONST_EXPR_AST);
+__def_ast_tid__(ConstDefsAST, CONST_DEFS_AST);
 
