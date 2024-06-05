@@ -41,11 +41,11 @@ using namespace std;
 // 非终结符
 %type <ast_val> CompUnit FuncDef FuncType Block BlockItem 
 %type <ast_val> Decl Stmt 
-%type <ast_val> Exp PrimaryExp Number UnaryExp UnaryOp
+%type <ast_val> Exp PrimaryExp UnaryExp UnaryOp
 %type <ast_val> MulExp AddExp BinOp 
 %type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
 %type <ast_val> ConstDecl BType ConstDefs ConstDef ConstInitVal ConstExp 
-%type <ast_val> LVal 
+%type <ast_val> LVal Number
 
 %%
 
@@ -104,10 +104,18 @@ BlockItem
   ;
 
 Stmt
-  : RETURN Exp ';' {
+  : LVal "=" Exp ";" {
     auto stmt = make_unique<StmtAST>();
+    stmt->__sub_type_ = _Stmt_Lval;
+    stmt->__lval_ = ast_uptr($1);
+    stmt->__expr_ = ast_uptr($3);
+    $$ = stmt.release();
+  }
+  | RETURN Exp ';' {
+    auto stmt = make_unique<StmtAST>();
+    stmt->__sub_type_ = _Stmt_Ret;
     stmt->__ret_ = __make_str_("return");
-    stmt->__expr_ = ast_uptr($Exp);
+    stmt->__expr_ = ast_uptr($2);
     $$ = stmt.release();
   }
   ;
@@ -328,6 +336,7 @@ ConstDecl
     auto const_decl = make_unique<ConstDeclAST>();
     const_decl->__btype_ = ast_uptr($2);
     const_decl->__const_def_ = ast_uptr($3);
+    const_decl->__const_defs_ = ast_uptr($4);
     $$ = const_decl.release();
   }
   ;
@@ -337,7 +346,8 @@ BType
     auto btype = make_unique<BTypeAST>();
     btype->__type_ = __make_str_("int");
     $$ = btype.release();
-  };
+  }
+  ;
 
 ConstDefs 
   : /* empty */ {
@@ -388,8 +398,6 @@ ConstExp
     $$ = const_expr.release();
   }
   ;
-
-
 
 %%
 

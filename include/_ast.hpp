@@ -67,8 +67,8 @@ public:
     {
         __os << "CompUnit { ";
             _a.func_def->log(__os);
-        __os << " }"
-            << __LN__;
+        __os << "\n}";
+        __os << __LN__;
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -85,11 +85,12 @@ public:
 
     __FRIEND_OS_OPT__(FuncDefAST, _a)
     {
+        __os << __LN__;
         __os << "FuncDef { ";
             _a.func_type->log(__os);
         __os << ", " << *_a.ident << ", ";
             _a.block->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -104,9 +105,10 @@ public:
 
     __FRIEND_OS_OPT__(FuncTypeAST, _a)
     {
+        __os << __LN__;
         __os << "FuncType { "
-            << *_a.__type_
-            << " }";
+            << *_a.__type_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -131,9 +133,10 @@ public:
     
     __FRIEND_OS_OPT__(BlockAST, _a)
     {
+        __os << __LN__;
         __os << "Block { ";
             _a.__block_item_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -158,6 +161,7 @@ public:
 
     __FRIEND_OS_OPT__(BlockItemAST, _a)
     {
+        __os << __LN__;
         __os << "BlockItem { ";
         
         switch (_a.__sub_type_)
@@ -170,7 +174,7 @@ public:
             break;
         }
 
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -181,14 +185,21 @@ __override_ast_tid__
 
 class StmtAST : public BaseAST {
 public:
+    #define _Stmt_Lval 0
+    #define _Stmt_Ret 1
+    ast_uptr __lval_;
     str_uptr __ret_;
     ast_uptr __expr_;
 
+    // _Stmt_Lval | _Stmt_Ret
+    int __sub_type_;
+
     __FRIEND_OS_OPT__(StmtAST, _a)
     {
+        __os << __LN__;
         __os << "Stmt { ";
             _a.__expr_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -205,9 +216,10 @@ public:
 
     __FRIEND_OS_OPT__(ExprAST, _a)
     {
+        __os << __LN__;
         __os << "Expr { ";
             _a.__lor_expr_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -232,6 +244,7 @@ public:
 
     __FRIEND_OS_OPT__(PrimaryExprAST, _a)
     {
+        __os << __LN__;
         __os << "PrimaryExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -248,7 +261,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -263,9 +276,10 @@ public:
 
     __FRIEND_OS_OPT__(LValAST, _a)
     {
+        __os << __LN__;
         __os << "LVal { "
-            << *_a.__ident_
-            << " }";
+            << *_a.__ident_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -280,9 +294,10 @@ public:
 
     __FRIEND_OS_OPT__(NumberAST, _a)
     {
+        __os << __LN__;
         __os << "Number { "
-            << _a.__int_const_
-            << " }";
+            << _a.__int_const_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -306,6 +321,7 @@ public:
 
     __FRIEND_OS_OPT__(UnaryExpAST, _a)
     {
+        __os << __LN__;
         __os << "UnaryExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -319,7 +335,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -366,9 +382,10 @@ public:
     // )
     __FRIEND_OS_OPT__(UnaryOpAST, _a)
     {
+        __os << __LN__;
         __os << "UnaryOp { "    
-            << *_a.__operator_   
-            << " }";
+            << *_a.__operator_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -391,6 +408,7 @@ public:
 
     __FRIEND_OS_OPT__(MulExpAST, _a)
     {
+        __os << __LN__;
         __os << "MulExp { ";
         switch (_a.__sub_expr_type_)
         {
@@ -405,7 +423,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -428,6 +446,7 @@ public:
 
     __FRIEND_OS_OPT__(AddExpAST, _a)
     {
+        __os << __LN__;
         __os << "AddExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -442,7 +461,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -498,9 +517,10 @@ public:
 
     __FRIEND_OS_OPT__(BinOpAST, _a)
     {
+        __os << __LN__;
         __os << "BinOp { "    
-            << *_a.__operator_   
-            << " }";
+            << *_a.__operator_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -523,6 +543,7 @@ public:
 
     __FRIEND_OS_OPT__(RelExpAST, _a)
     {
+        __os << __LN__;
         __os << "RelExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -537,7 +558,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -560,6 +581,7 @@ public:
 
     __FRIEND_OS_OPT__(EqExpAST, _a)
     {
+        __os << __LN__;
         __os << "EqExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -574,7 +596,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -638,9 +660,10 @@ public:
     // )
     __FRIEND_OS_OPT__(CmpOpAST, _a)
     {
+        __os << __LN__;
         __os << "CmpOp { "    
-            << *_a.__operator_   
-            << " }";
+            << *_a.__operator_;
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -664,6 +687,7 @@ public:
 
     __FRIEND_OS_OPT__(LAndExpAST, _a)
     {
+        __os << __LN__;
         __os << "LAndExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -678,7 +702,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -701,6 +725,7 @@ public:
 
     __FRIEND_OS_OPT__(LOrExpAST, _a)
     {
+        __os << __LN__;
         __os << "LOrExpr { ";
         switch (_a.__sub_expr_type_)
         {
@@ -715,7 +740,7 @@ public:
         default:
             break;
         }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -732,9 +757,10 @@ public:
 
     __FRIEND_OS_OPT__(DeclAST, _a)
     {
+        __os << __LN__;
         __os << "Decl { ";
             _a.__const_decl_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -747,22 +773,24 @@ class ConstDeclAST : public BaseAST {
 public:
     ast_uptr __btype_;
     ast_uptr __const_def_;
+    ast_uptr __const_defs_;
 
     // 0,1,2,...n
-    std::vector<ast_uptr> __const_defs_;
+    std::vector<ast_uptr> __const_defs_vec_;
     __decl_sym_table_of;
 
     __FRIEND_OS_OPT__(ConstDeclAST, _a)
     {
+        __os << __LN__;
         __os << "ConstDecl { ";
             _a.__btype_->log(__os);
             _a.__const_def_->log(__os);
 
-            for(auto & _def : _a.__const_defs_)
+            for(auto & _def : _a.__const_defs_vec_)
             {
                 _def->log(__os);
             }
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -777,9 +805,10 @@ public:
 
     __FRIEND_OS_OPT__(BTypeAST, _a)
     {
+        __os << __LN__;
         __os << "BType { ";
             __os << *_a.__type_;
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -799,12 +828,14 @@ public:
     int __sub_expr_type_;
 
     // __decl_sym_table_of;
+    std::vector<ast_uptr> __const_defs_;
 
     __FRIEND_OS_OPT__(ConstDefsAST, _a)
     {
+        __os << __LN__;
         __os << "ConstDefsAST { ";
             // __os << *_a.__type_;
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -819,21 +850,22 @@ public:
     str_uptr __ident_;
     ast_uptr __const_init_val_;
 
-    std::string GetIdent() {
+    std::string GetIdent() const {
         return *__ident_;
     }
 
-    TypeValue GetTypeValue() {
+    TypeValue GetTypeValue() const {
         return TypeValue{};
     }
 
     __FRIEND_OS_OPT__(ConstDefAST, _a)
     {
+        __os << __LN__;
         __os << "ConstDef { ";
-        __os << *_a.__ident_ 
+        __os << _a.GetIdent()
             << " = ";
         _a.__const_init_val_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -848,9 +880,10 @@ public:
 
     __FRIEND_OS_OPT__(ConstInitValAST, _a)
     {
+        __os << __LN__;
         __os << "ConstInitVal { ";
             _a.__const_expr_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
@@ -865,9 +898,10 @@ public:
 
     __FRIEND_OS_OPT__(ConstExpAST, _a)
     {
+        __os << __LN__;
         __os << "ConstExpr { ";
             _a.__expr_->log(__os);
-        __os << " }";
+        __os << "\n}";
         return __os;
     }
     __MEMBER_FUNC_LOG_OVERRIDE__
