@@ -52,28 +52,28 @@ int main(int argc, const char *argv[]) {
         _mode_num == MODE_ALL)
         _ast->log(ast_ofs);
 
-    // gen IR 
-    auto _ir = 
-        std::make_unique<Alan::ProgramIR>
-        (*Alan::static_uptr_cast<CompUnitAST, BaseAST>(_ast));
-    if (_mode_num >= MODE_ALL)
-        ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
-    else 
-        ir_ofs = std::ofstream(output);
-    if (_mode_num == MODE_IR ||
-        _mode_num == MODE_ALL)
-        _ir->log(ir_ofs);
+    // // gen IR 
+    // auto _ir = 
+    //     std::make_unique<Alan::ProgramIR>
+    //     (*Alan::static_uptr_cast<CompUnitAST, BaseAST>(_ast));
+    // if (_mode_num >= MODE_ALL)
+    //     ir_ofs = std::ofstream(__STR_CAT__(output_v2, ".koopa"));
+    // else 
+    //     ir_ofs = std::ofstream(output);
+    // if (_mode_num == MODE_IR ||
+    //     _mode_num == MODE_ALL)
+    //     _ir->log(ir_ofs);
 
-    // gen ASM(RV64I)
-    auto _asm = 
-        std::make_unique<Alan::RV64::I::ProgramAsmGenerator>(*_ir);
-    if (_mode_num >= MODE_ALL)
-        asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
-    else 
-        asm_ofs = std::ofstream(output);
-    if (_mode_num == MODE_ASM ||
-        _mode_num == MODE_ALL)
-        _asm->log(asm_ofs);
+    // // gen ASM(RV64I)
+    // auto _asm = 
+    //     std::make_unique<Alan::RV64::I::ProgramAsmGenerator>(*_ir);
+    // if (_mode_num >= MODE_ALL)
+    //     asm_ofs = std::ofstream(__STR_CAT__(output_v2, ".s"));
+    // else 
+    //     asm_ofs = std::ofstream(output);
+    // if (_mode_num == MODE_ASM ||
+    //     _mode_num == MODE_ALL)
+    //     _asm->log(asm_ofs);
 
     return 0;
 }

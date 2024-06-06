@@ -11,6 +11,7 @@
 
 #include "_alib.hpp"
 #include "_ref.hpp"
+#include "_stllib.hpp"
 
 #define __decl_ast_tid__ \
         public: __CLASS_UNIQUE__ size_t __ast_tid_
@@ -46,6 +47,7 @@
 #define CONST_INIT_VAL_AST 24
 #define CONST_EXPR_AST 25
 #define CONST_DEFS_AST 26
+#define BLOCK_ITEMS_AST 27
 
 class BaseAST {
  public:
@@ -122,7 +124,7 @@ using __Sym_Table_t = std::shared_ptr<SymTable>;
 
 class BlockAST : public BaseAST {
 public:
-    ast_uptr __block_item_;
+    ast_uptr __block_items_;
 
     __decl_sym_table_of;
     
@@ -135,7 +137,56 @@ public:
     {
         __os << __LN__;
         __os << "Block { ";
-            _a.__block_item_->log(__os);
+            _a.__block_items_->log(__os);
+        __os << "\n}";
+        return __os;
+    }
+    __MEMBER_FUNC_LOG_OVERRIDE__
+
+__decl_ast_tid__;
+__override_ast_tid__
+};
+
+class BlockItemsAST : public BaseAST {
+public:
+    #define __BlockItems_Null 0
+    ast_uptr __block_item_;
+    #define __BlockItems_Recv 1
+    ast_uptr __next_;
+
+    int __sub_type_;
+
+    std::vector<ast_uptr> __block_items_;
+
+    void collect() {
+        #define local_cast Alan::static_uptr_cast<BlockItemsAST, BaseAST>
+        __block_items_.push_back(std::move(__block_item_));
+        ast_uptr cur_raw = std::move(this->__next_);
+        while(cur_raw) {
+            auto cur = local_cast(cur_raw);
+            __block_items_.push_back(std::move(cur));
+            cur_raw = std::move(cur->__next_);
+        #undef local_cast
+        }
+    }
+
+    __FRIEND_OS_OPT__(BlockItemsAST, _a)
+    {
+        __os << __LN__;
+        __os << "BlockItems { ";
+        
+        switch (_a.__sub_type_)
+        {
+        case __BlockItems_Null:
+
+            break;
+        case __BlockItems_Recv:
+            for (auto & item : _a.__block_items_){
+                item->log(__os);
+            }
+            break;
+        }
+
         __os << "\n}";
         return __os;
     }

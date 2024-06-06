@@ -691,7 +691,7 @@ BasicBlockIR::BasicBlockIR(BlockAST & _bast)
 { 
     auto blockItemPtr = 
         Alan::static_uptr_cast<BlockItemAST, BaseAST>
-            (__block_ast_->__block_item_);
+            (__block_ast_->__block_items_);
     std::unique_ptr<DeclAST> declPtr;
     std::unique_ptr<StmtAST> stmtPtr;
 

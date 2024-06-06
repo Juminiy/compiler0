@@ -39,8 +39,8 @@ using namespace std;
 %token <int_val> INT_CONST
 
 // 非终结符
-%type <ast_val> CompUnit FuncDef FuncType Block BlockItem 
-%type <ast_val> Decl Stmt 
+%type <ast_val> CompUnit FuncDef FuncType Block  
+%type <ast_val> BlockItems BlockItem Decl Stmt 
 %type <ast_val> Exp PrimaryExp UnaryExp UnaryOp
 %type <ast_val> MulExp AddExp BinOp 
 %type <ast_val> RelExp EqExp CmpOp LAndExp LOrExp
@@ -76,10 +76,25 @@ FuncType
   ;
 
 Block
-  : '{' BlockItem '}' {
+  : '{' BlockItems '}' {
     auto block = make_unique<BlockAST>();
-    block->__block_item_ = ast_uptr($2);
+    block->__block_items_ = ast_uptr($2);
     $$ = block.release();
+  }
+  ;
+
+BlockItems
+  : /* empty */ {
+    auto block_items = make_unique<BlockItemsAST>();
+    block_items->__sub_type_ = __BlockItems_Null;
+    $$ =  block_items.release();
+  }
+  | BlockItem BlockItems {
+    auto block_items = make_unique<BlockItemsAST>();
+    block_items->__sub_type_ = __BlockItems_Recv;
+    block_items->__block_item_ = ast_uptr($1);
+    block_items->__next_ = ast_uptr($2);
+    $$ =  block_items.release();
   }
   ;
 
