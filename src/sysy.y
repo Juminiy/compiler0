@@ -118,6 +118,113 @@ BlockItem
   }
   ;
 
+Decl
+  : ConstDecl {
+    auto decl = make_unique<DeclAST>();
+    decl->__const_decl_ = ast_uptr($1);
+    $$ = decl.release();
+  }
+  | VarDecl {
+    
+  }
+  ;
+
+ConstDecl
+  : CONST BType ConstDef ConstDefs ";" {
+    auto const_decl = make_unique<ConstDeclAST>();
+    const_decl->__btype_ = ast_uptr($2);
+    const_decl->__const_def_ = ast_uptr($3);
+    const_decl->__const_defs_ = ast_uptr($4);
+    $$ = const_decl.release();
+  }
+  ;
+
+BType 
+  : INT {
+    auto btype = make_unique<BTypeAST>();
+    btype->__type_ = __make_str_("int");
+    $$ = btype.release();
+  }
+  ;
+
+ConstDefs 
+  : /* empty */ {
+    auto const_defs = make_unique<ConstDefsAST>(); 
+    const_defs->__sub_expr_type_ = __ConstDefs_Null;
+    // const_defs->__sym_table = std::make_shared<SymTable>();
+    $$ = const_defs.release();
+  }
+  | "," ConstDef ConstDefs {
+    auto const_defs = make_unique<ConstDefsAST>(); 
+    const_defs->__sub_expr_type_ = __ConstDefs_Recr;
+    const_defs->__const_def_ = ast_uptr($2);
+    const_defs->__next_ = ast_uptr($3);
+    // auto child_const_def = 
+    //   Alan::static_uptr_cast<ConstDefAST, BaseAST>($2);
+    // auto child_const_defs = 
+    //   Alan::static_uptr_cast<ConstDefsAST, BaseAST>($3);
+    // const_defs->__sym_table = child_const_defs->__sym_table;
+    // const_defs->__sym_table->Put(
+    //   child_const_def->GetIdent(),
+    //   child_const_def->GetTypeValue()
+    // );
+    $$ = const_defs.release();
+  }
+  ;
+
+ConstDef 
+  : IDENT "=" ConstInitVal {
+    auto const_def = make_unique<ConstDefAST>();
+    const_def->__ident_ = str_uptr($1);
+    const_def->__const_init_val_ = ast_uptr($3);
+    $$ = const_def.release();
+  }
+  ;
+
+ConstInitVal 
+  : ConstExp {
+    auto const_init_val = make_unique<ConstInitValAST>();
+    const_init_val->__const_expr_ = ast_uptr($1);
+    $$ = const_init_val.release();
+  }
+  ;
+
+ConstExp 
+  : Exp {
+    auto const_expr = make_unique<ConstExpAST>();
+    const_expr->__expr_ = ast_uptr($1);
+    $$ = const_expr.release();
+  }
+  ;
+
+VarDecl
+  : BType VarDef VarDefs ";" {
+    
+  }
+  ;
+
+VarDefs 
+  : "," VarDef VarDefs {
+
+  }
+  ;
+
+VarDef 
+  : IDENT {
+
+  }
+  | IDENT "=" InitVal {
+
+  }
+  ;
+
+InitVal 
+  : Exp {
+
+  }
+  ;
+
+
 Stmt
   : LVal "=" Exp ";" {
     auto stmt = make_unique<StmtAST>();
@@ -336,82 +443,6 @@ LOrExp
       lor_expr->__sub_expr_type_ = __LOrExpr_LOr;
       $$ = lor_expr.release();
     }
-  ;
-
-Decl
-  : ConstDecl {
-    auto decl = make_unique<DeclAST>();
-    decl->__const_decl_ = ast_uptr($1);
-    $$ = decl.release();
-  }
-  ;
-
-ConstDecl
-  : CONST BType ConstDef ConstDefs ";" {
-    auto const_decl = make_unique<ConstDeclAST>();
-    const_decl->__btype_ = ast_uptr($2);
-    const_decl->__const_def_ = ast_uptr($3);
-    const_decl->__const_defs_ = ast_uptr($4);
-    $$ = const_decl.release();
-  }
-  ;
-
-BType 
-  : INT {
-    auto btype = make_unique<BTypeAST>();
-    btype->__type_ = __make_str_("int");
-    $$ = btype.release();
-  }
-  ;
-
-ConstDefs 
-  : /* empty */ {
-    auto const_defs = make_unique<ConstDefsAST>(); 
-    const_defs->__sub_expr_type_ = __ConstDefs_Null;
-    // const_defs->__sym_table = std::make_shared<SymTable>();
-    $$ = const_defs.release();
-  }
-  | "," ConstDef ConstDefs {
-    auto const_defs = make_unique<ConstDefsAST>(); 
-    const_defs->__sub_expr_type_ = __ConstDefs_Recr;
-    const_defs->__const_def_ = ast_uptr($2);
-    const_defs->__next_ = ast_uptr($3);
-    // auto child_const_def = 
-    //   Alan::static_uptr_cast<ConstDefAST, BaseAST>($2);
-    // auto child_const_defs = 
-    //   Alan::static_uptr_cast<ConstDefsAST, BaseAST>($3);
-    // const_defs->__sym_table = child_const_defs->__sym_table;
-    // const_defs->__sym_table->Put(
-    //   child_const_def->GetIdent(),
-    //   child_const_def->GetTypeValue()
-    // );
-    $$ = const_defs.release();
-  }
-  ;
-
-ConstDef 
-  : IDENT "=" ConstInitVal {
-    auto const_def = make_unique<ConstDefAST>();
-    const_def->__ident_ = str_uptr($1);
-    const_def->__const_init_val_ = ast_uptr($3);
-    $$ = const_def.release();
-  }
-  ;
-
-ConstInitVal 
-  : ConstExp {
-    auto const_init_val = make_unique<ConstInitValAST>();
-    const_init_val->__const_expr_ = ast_uptr($1);
-    $$ = const_init_val.release();
-  }
-  ;
-
-ConstExp 
-  : Exp {
-    auto const_expr = make_unique<ConstExpAST>();
-    const_expr->__expr_ = ast_uptr($1);
-    $$ = const_expr.release();
-  }
   ;
 
 %%
